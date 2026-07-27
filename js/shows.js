@@ -27,6 +27,7 @@
 
   function initHeroCarousel() {
     if (!grid.classList.contains("shows-grid--home")) return;
+    const progressFill = grid.parentElement.querySelector(".hero-carousel-progress__fill");
     const mq = window.matchMedia("(max-width: 767.98px)");
     let timer = null;
 
@@ -37,6 +38,17 @@
       const step = cards[0].getBoundingClientRect().width + gap;
       const atEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
       grid.scrollTo({ left: atEnd ? 0 : grid.scrollLeft + step, behavior: "smooth" });
+    }
+
+    function updateProgress() {
+      if (!progressFill) return;
+      if (!mq.matches) {
+        progressFill.style.transform = "scaleX(1)";
+        return;
+      }
+      const scrollable = grid.scrollWidth - grid.clientWidth;
+      const ratio = scrollable > 0 ? grid.scrollLeft / scrollable : 1;
+      progressFill.style.transform = `scaleX(${Math.min(1, Math.max(0, ratio))})`;
     }
 
     function start() {
@@ -52,8 +64,10 @@
     function sync() {
       if (mq.matches) start();
       else stop();
+      updateProgress();
     }
 
+    grid.addEventListener("scroll", updateProgress, { passive: true });
     grid.addEventListener("touchstart", stop, { passive: true });
     grid.addEventListener("touchend", () => sync(), { passive: true });
     mq.addEventListener("change", sync);

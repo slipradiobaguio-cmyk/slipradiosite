@@ -61,8 +61,8 @@ body.theme-dark .site-logo--text {
     font-size: 0.6rem;
   }
 
-  .live-indicator__label {
-    display: none;
+  .live-indicator {
+    font-size: 0.6rem;
   }
 }
 
@@ -223,8 +223,25 @@ body.theme-dark .site-logo--text {
 /* keep the footer off-screen until the page is actually scrolled to the end,
    same as it'll behave once each page has more real content */
 
-@media (min-width: 768px) {
-  main {
-    min-height: 100vh;
-  }
+main {
+  min-height: 100vh;
+}
+
+/* hero carousel progress — a thin scrubber under the thumbnails, showing
+   how far through the row you are (mobile) or that everything's on screen
+   already (desktop, where the grid doesn't scroll) */
+
+.hero-carousel-progress {
+  height: 2px;
+  margin-top: var(--space-sm);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.hero-carousel-progress__fill {
+  height: 100%;
+  width: 100%;
+  background: var(--color-text);
+  transform: scaleX(0);
+  transform-origin: left;
 }

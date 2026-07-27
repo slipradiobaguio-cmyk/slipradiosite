@@ -3,7 +3,6 @@
   if (!bar) return;
 
   const liveIndicator = document.querySelector(".live-indicator");
-  const statusEl = bar.querySelector(".now-playing__status");
   const titleEl = bar.querySelector(".now-playing__title");
   const artistEl = bar.querySelector(".now-playing__artist");
   const toggleBtn = bar.querySelector(".now-playing__toggle");
@@ -27,7 +26,6 @@
       const label = liveIndicator.querySelector(".live-indicator__label");
       if (label) label.textContent = (STATUS_LABEL[state] || state).toUpperCase();
     }
-    statusEl.textContent = STATUS_LABEL[state] || state;
 
     if (state === "live" && data) {
       titleEl.textContent = data.title || "Untitled set";

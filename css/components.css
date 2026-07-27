@@ -185,17 +185,6 @@
   display: block;
 }
 
-.now-playing__status {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.15rem 0.4rem;
-  border: 1px solid currentColor;
-  color: var(--color-muted);
-  flex-shrink: 0;
-}
-
 .now-playing__info {
   min-width: 0;
   flex: 1;
@@ -278,33 +267,14 @@
 
 /* state-specific looks */
 
-.now-playing[data-state="live"] .now-playing__status {
-  color: var(--color-live);
-  border-color: var(--color-live);
-}
-
-.now-playing[data-state="loading"] .now-playing__status {
-  color: var(--color-muted);
-}
-
 .now-playing[data-state="loading"] .now-playing__title,
 .now-playing[data-state="loading"] .now-playing__artist {
   opacity: 0.5;
 }
 
-.now-playing[data-state="offline"] .now-playing__status {
-  color: var(--color-offline);
-  border-color: var(--color-offline);
-}
-
 .now-playing[data-state="offline"] .now-playing__title,
 .now-playing[data-state="offline"] .now-playing__artist {
   color: var(--color-muted);
-}
-
-.now-playing[data-state="error"] .now-playing__status {
-  color: var(--color-muted-strong);
-  border-color: var(--color-muted-strong);
 }
 
 /* dark-theme pages (about, support-us) keep the player bar light,
