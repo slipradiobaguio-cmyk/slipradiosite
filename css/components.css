@@ -148,11 +148,9 @@
 }
 
 .now-playing__toggle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
+  border: none;
   background: none;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,8 +163,8 @@
 }
 
 .now-playing__toggle svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
 }
 
 .now-playing__toggle .icon-pause {

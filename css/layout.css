@@ -16,13 +16,22 @@
   width: auto;
 }
 
-[data-logo-small] .site-logo__img {
-  height: 28px;
-}
-
 /* logo PNG is solid black on transparent — invert it to read on dark pages */
 body.theme-dark .site-logo__img {
   filter: invert(1);
+}
+
+.site-logo--text {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1;
+  text-transform: lowercase;
+  color: var(--color-text);
+}
+
+body.theme-dark .site-logo--text {
+  color: var(--color-text-inverse);
 }
 
 .site-nav {
@@ -46,11 +55,10 @@ body.theme-dark .site-logo__img {
 .nav-toggle {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
   background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 0.4rem 0.75rem;
+  border: none;
+  padding: 0;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -60,6 +68,7 @@ body.theme-dark .site-logo__img {
   display: none;
   flex-direction: column;
   gap: var(--space-sm);
+  padding-inline: var(--page-gutter);
   padding-block: var(--space-sm);
   border-top: 1px solid var(--color-border);
 }
