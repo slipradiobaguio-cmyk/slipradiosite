@@ -33,13 +33,14 @@ This runs `wrangler pages dev`, which serves the static files and the `/function
 
 Push to `main` — Cloudflare Pages auto-deploys from there. No separate deploy step for the API; Functions ship with the same push.
 
-## Cloudflare setup checklist (one-time, in the dashboard)
+## Cloudflare setup checklist
 
-1. Create the Pages project, connect this repo, build output = repo root, no build command.
-2. Create a KV namespace, bind it as `SHOWS` in Pages → Settings → Functions.
-3. Create an R2 bucket (e.g. `slip-radio-thumbnails`), bind it as `THUMBNAILS`.
-4. Set up a Cloudflare Access application covering `/admin/*` and `/api/admin/*` so only the team can reach the editing UI and its write endpoints. Everything else stays public.
-5. Once the radio streaming tool is picked, set the `NOW_PLAYING_API_URL` environment variable to its now-playing endpoint and adjust the field mapping in `functions/api/now-playing.js` to match its response shape.
+1. ~~Create the Pages project~~ — done (`slipradiosite`, created via `wrangler pages project create`).
+2. ~~Create a KV namespace, bind it as `SHOWS`~~ — done. Binding is declared in `wrangler.toml` and Cloudflare picks it up automatically on `wrangler pages deploy` — no separate dashboard binding step needed.
+3. ~~Create an R2 bucket, bind it as `THUMBNAILS`~~ — done, same auto-binding via `wrangler.toml`.
+4. **Still needed:** connect the Pages project to the `slipradiobaguio-cmyk/slipradiosite` GitHub repo (Pages project → Settings → Builds & deployments → connect repository) so `git push` auto-deploys instead of relying on manual `wrangler pages deploy` runs.
+5. **Still needed:** set up a Cloudflare Access application covering `/admin/*` and `/api/admin/*` so only the team can reach the editing UI and its write endpoints. Everything else stays public. Until this is done, `/admin` is unprotected on the live site.
+6. Once the radio streaming tool is picked, set the `NOW_PLAYING_API_URL` environment variable (Pages project → Settings → Environment variables) to its now-playing endpoint and adjust the field mapping in `functions/api/now-playing.js` to match its response shape.
 
 ## Known local-dev limitation
 

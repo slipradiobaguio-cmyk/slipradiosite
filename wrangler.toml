@@ -2,11 +2,9 @@ name = "slip-radio-site"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "."
 
-# local dev bindings for `wrangler pages dev .` — production bindings are
-# configured separately in the Cloudflare Pages dashboard (Settings > Functions)
 [[kv_namespaces]]
 binding = "SHOWS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "9470153371854d02bc402a79f8d0faa0"
 
 [[r2_buckets]]
 binding = "THUMBNAILS"
