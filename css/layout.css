@@ -35,7 +35,8 @@ body.theme-dark .site-logo--text {
 }
 
 .site-nav {
-  display: none;
+  display: flex;
+  align-items: center;
 }
 
 .site-nav__list {
@@ -52,44 +53,16 @@ body.theme-dark .site-logo--text {
   text-underline-offset: 3px;
 }
 
-.nav-toggle {
-  display: inline-flex;
-  align-items: center;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.mobile-nav {
-  display: none;
-  flex-direction: column;
-  gap: var(--space-sm);
-  padding-inline: var(--page-gutter);
-  padding-block: var(--space-sm);
-  border-top: 1px solid var(--color-border);
-}
-
-.mobile-nav.is-open {
-  display: flex;
-}
-
-@media (min-width: 768px) {
-  .site-nav {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
+/* mobile header — nav sits beside the logo instead of behind a menu toggle;
+   sized down and tightened so the logo stays the visual anchor */
+@media (max-width: 767.98px) {
+  .site-nav__list {
+    gap: var(--space-sm);
+    font-size: 0.6rem;
   }
 
-  .nav-toggle {
+  .live-indicator__label {
     display: none;
-  }
-
-  .mobile-nav {
-    display: none !important;
   }
 }
 
@@ -104,6 +77,12 @@ body.theme-dark .site-logo--text {
   gap: var(--space-md);
   font-size: 0.8rem;
   color: var(--color-muted);
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
 @media (min-width: 768px) {
@@ -172,13 +151,6 @@ body.theme-dark .site-logo--text {
   margin-top: var(--space-xs);
 }
 
-@media (min-width: 768px) {
-  .about-intro {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-  }
-}
-
 /* show detail */
 
 .show-detail__hero {
@@ -231,6 +203,7 @@ body.theme-dark .site-logo--text {
   .shows-grid--home {
     display: flex;
     grid-template-columns: none;
+    gap: 0;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -242,16 +215,16 @@ body.theme-dark .site-logo--text {
   }
 
   .shows-grid--home .show-card {
-    flex: 0 0 82%;
-    scroll-snap-align: start;
+    flex: 0 0 100%;
+    scroll-snap-align: center;
   }
 }
 
-/* home page — keep the footer off-screen until the page is actually scrolled
-   to the end, same as it'll behave once the schedule/hero have more content */
+/* keep the footer off-screen until the page is actually scrolled to the end,
+   same as it'll behave once each page has more real content */
 
 @media (min-width: 768px) {
-  body.page-home > main {
+  main {
     min-height: 100vh;
   }
 }
