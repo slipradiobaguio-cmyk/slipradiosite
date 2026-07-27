@@ -162,6 +162,12 @@
   opacity: 0.35;
 }
 
+@media (min-width: 768px) {
+  .now-playing__toggle {
+    margin-left: -4px;
+  }
+}
+
 .now-playing__toggle svg {
   width: 14px;
   height: 14px;

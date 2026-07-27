@@ -112,6 +112,16 @@ body.theme-dark .site-logo--text {
     align-items: center;
     justify-content: space-between;
   }
+
+  .site-footer__links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
 }
 
 /* generic page section rhythm */
@@ -212,5 +222,36 @@ body.theme-dark .site-logo--text {
 @media (min-width: 1440px) {
   .shows-grid {
     grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* home hero grid — single scrollable row on mobile, regular grid from tablet up */
+
+@media (max-width: 767.98px) {
+  .shows-grid--home {
+    display: flex;
+    grid-template-columns: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .shows-grid--home::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shows-grid--home .show-card {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+  }
+}
+
+/* home page — keep the footer off-screen until the page is actually scrolled
+   to the end, same as it'll behave once the schedule/hero have more content */
+
+@media (min-width: 768px) {
+  body.page-home > main {
+    min-height: 100vh;
   }
 }

@@ -25,6 +25,41 @@
     return Array.from({ length: count }, () => ({ title: "Show Title", guestName: "Artist" }));
   }
 
+  function initHeroCarousel() {
+    if (!grid.classList.contains("shows-grid--home")) return;
+    const mq = window.matchMedia("(max-width: 767.98px)");
+    let timer = null;
+
+    function advance() {
+      const cards = grid.querySelectorAll(".show-card");
+      if (cards.length < 2) return;
+      const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
+      const step = cards[0].getBoundingClientRect().width + gap;
+      const atEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
+      grid.scrollTo({ left: atEnd ? 0 : grid.scrollLeft + step, behavior: "smooth" });
+    }
+
+    function start() {
+      stop();
+      timer = setInterval(advance, 3000);
+    }
+
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+
+    function sync() {
+      if (mq.matches) start();
+      else stop();
+    }
+
+    grid.addEventListener("touchstart", stop, { passive: true });
+    grid.addEventListener("touchend", () => sync(), { passive: true });
+    mq.addEventListener("change", sync);
+    sync();
+  }
+
   async function load() {
     grid.setAttribute("aria-busy", "true");
     const limit = grid.dataset.limit ? parseInt(grid.dataset.limit, 10) : null;
@@ -42,6 +77,7 @@
       grid.innerHTML = `<p class="admin-status" data-tone="error">Couldn't load shows right now.</p>`;
     } finally {
       grid.removeAttribute("aria-busy");
+      initHeroCarousel();
     }
   }
 
