@@ -73,7 +73,6 @@ select {
   --space-xl: 4rem;
 
   --page-gutter: var(--space-sm);
-  --max-width: 1440px;
 
   --nowplaying-height: 64px;
 }
@@ -92,15 +91,23 @@ select {
 
 html {
   font-size: 16px;
+  height: 100%;
 }
 
 body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-body);
   background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
   padding-bottom: var(--nowplaying-height);
+}
+
+body > main {
+  flex: 1 0 auto;
 }
 
 body.theme-dark {
@@ -110,8 +117,6 @@ body.theme-dark {
 
 .container {
   width: 100%;
-  max-width: var(--max-width);
-  margin-inline: auto;
   padding-inline: var(--page-gutter);
 }
 

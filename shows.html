@@ -61,14 +61,21 @@
   </footer>
 
   <div class="now-playing" data-state="loading">
-    <button class="now-playing__toggle" type="button" aria-label="Play" disabled>▶</button>
+    <button class="now-playing__toggle" type="button" aria-label="Play" disabled>
+      <svg class="icon-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>
+      <svg class="icon-pause" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" fill="currentColor"/></svg>
+    </button>
     <span class="now-playing__status">connecting</span>
     <div class="now-playing__info">
       <div class="now-playing__title">Connecting to stream…</div>
       <div class="now-playing__artist"></div>
     </div>
     <div class="now-playing__volume">
-      <span aria-hidden="true">&#128266;</span>
+      <svg class="now-playing__volume-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 8v4h3l4 4V4L6 8H3z" fill="currentColor" stroke="none"/>
+        <path d="M13 7.5a3 3 0 0 1 0 5"/>
+        <path d="M15.5 5.5a6.5 6.5 0 0 1 0 9"/>
+      </svg>
       <input type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Volume">
     </div>
   </div>

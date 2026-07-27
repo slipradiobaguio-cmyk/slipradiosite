@@ -148,8 +148,8 @@
 }
 
 .now-playing__toggle {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   background: none;
@@ -157,10 +157,28 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: var(--color-text);
 }
 
 .now-playing__toggle:disabled {
   opacity: 0.35;
+}
+
+.now-playing__toggle svg {
+  width: 12px;
+  height: 12px;
+}
+
+.now-playing__toggle .icon-pause {
+  display: none;
+}
+
+.now-playing__toggle[data-playing="true"] .icon-play {
+  display: none;
+}
+
+.now-playing__toggle[data-playing="true"] .icon-pause {
+  display: block;
 }
 
 .now-playing__status {
@@ -205,12 +223,53 @@
   align-items: center;
   gap: var(--space-xs);
   flex-shrink: 0;
+  color: var(--color-text);
 }
 
 @media (min-width: 768px) {
   .now-playing__volume {
     display: flex;
   }
+}
+
+.now-playing__volume-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* thin custom range track — default browser sliders read too chunky */
+.now-playing__volume input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 2px;
+  background: var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.now-playing__volume input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text);
+  border: none;
+}
+
+.now-playing__volume input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text);
+  border: none;
+}
+
+.now-playing__volume input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--color-border);
+  border-radius: 999px;
 }
 
 /* state-specific looks */

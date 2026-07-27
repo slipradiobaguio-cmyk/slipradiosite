@@ -54,13 +54,13 @@
   function pause() {
     audio.pause();
     toggleBtn.setAttribute("aria-label", "Play");
-    toggleBtn.textContent = "▶";
+    toggleBtn.dataset.playing = "false";
   }
 
   function play() {
     audio.play().catch(() => setState("error"));
     toggleBtn.setAttribute("aria-label", "Pause");
-    toggleBtn.textContent = "❚❚";
+    toggleBtn.dataset.playing = "true";
   }
 
   toggleBtn.addEventListener("click", () => {
