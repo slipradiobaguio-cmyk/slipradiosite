@@ -1,0 +1,11 @@
+{
+  "name": "slip-radio-site",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev . --kv SHOWS --r2 THUMBNAILS",
+    "deploy": "wrangler pages deploy ."
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

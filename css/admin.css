@@ -1,0 +1,135 @@
+.admin-layout {
+  padding-block: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.admin-list {
+  border: 1px solid var(--color-border);
+}
+
+.admin-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-list__row:last-child {
+  border-bottom: none;
+}
+
+.admin-list__thumb {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt);
+  background-size: cover;
+  background-position: center;
+}
+
+.admin-list__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-list__title {
+  font-weight: 600;
+}
+
+.admin-list__sub {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.admin-list__actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.admin-form {
+  display: grid;
+  gap: var(--space-sm);
+  max-width: 640px;
+}
+
+.admin-form label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  margin-bottom: 0.3rem;
+}
+
+.admin-form input[type="text"],
+.admin-form input[type="date"],
+.admin-form input[type="url"],
+.admin-form textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  padding: 0.6rem;
+  background: var(--color-bg);
+}
+
+.admin-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.admin-form__row {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .admin-form__row--split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.admin-form__thumb-preview {
+  width: 120px;
+  height: 120px;
+  background: var(--color-surface-alt);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--space-xs);
+}
+
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-text);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.btn--danger {
+  border-color: var(--color-live);
+  color: var(--color-live);
+}
+
+.admin-status {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.admin-status[data-tone="error"] {
+  color: var(--color-live);
+}

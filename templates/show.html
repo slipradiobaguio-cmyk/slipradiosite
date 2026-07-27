@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Show — Slip Radio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <header class="site-header container">
+    <a href="/" class="site-logo" data-nav-link>
+      <img src="/assets/icons/logo.png" alt="Slip Radio" class="site-logo__img">
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav">Menu</button>
+    <nav class="site-nav" aria-label="Primary">
+      <ul class="site-nav__list">
+        <li><a href="/about" data-nav-link>About</a></li>
+        <li><a href="/shows" data-nav-link>Shows</a></li>
+        <li><a href="/support-us" data-nav-link>Support Us</a></li>
+        <li class="live-indicator" data-state="loading">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span class="live-indicator__label">Connecting</span>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Primary mobile">
+    <a href="/about" data-nav-link>About</a>
+    <a href="/shows" data-nav-link>Shows</a>
+    <a href="/support-us" data-nav-link>Support Us</a>
+  </nav>
+
+  <main data-show-detail aria-busy="true">
+    <div class="show-card__thumb show-detail__hero" data-field="hero"></div>
+    <section class="page-section container">
+      <h1 class="page-title" data-field="title"></h1>
+      <p class="show-detail__guest" data-field="guestName"></p>
+      <p class="show-detail__meta">
+        <span data-field="dateTime"></span> · <span data-field="genres"></span>
+      </p>
+      <p data-field="shortDescription"></p>
+      <p data-field="longDescription"></p>
+      <h2 class="show-detail__bio-heading">About the guest</h2>
+      <p data-field="bio"></p>
+      <a data-field="socialLink" target="_blank" rel="noopener">Follow</a>
+    </section>
+  </main>
+
+  <footer class="site-footer container">
+    <div>
+      <span class="site-logo" data-logo-small><img src="/assets/icons/logo.png" alt="Slip Radio" class="site-logo__img"></span>
+      <p>Live every Sunday</p>
+    </div>
+    <address>
+      Ridgeus-01 Left Wing Goshen and Towers<br>
+      Upper General Luna<br>
+      2400 Baguio City · PH
+    </address>
+    <div class="site-footer__links">
+      <a href="#">Instagram</a>
+      <a href="#">Facebook</a>
+      <a href="mailto:program.slipradio@gmail.com">program.slipradio@gmail.com</a>
+    </div>
+  </footer>
+
+  <div class="now-playing" data-state="loading">
+    <button class="now-playing__toggle" type="button" aria-label="Play" disabled>▶</button>
+    <span class="now-playing__status">connecting</span>
+    <div class="now-playing__info">
+      <div class="now-playing__title">Connecting to stream…</div>
+      <div class="now-playing__artist"></div>
+    </div>
+    <div class="now-playing__volume">
+      <span aria-hidden="true">&#128266;</span>
+      <input type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Volume">
+    </div>
+  </div>
+
+  <script src="/js/nav.js" defer></script>
+  <script src="/js/now-playing.js" defer></script>
+  <script src="/js/show-detail.js" defer></script>
+</body>
+</html>

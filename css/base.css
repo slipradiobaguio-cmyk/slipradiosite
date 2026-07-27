@@ -1,0 +1,125 @@
+/* reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img,
+picture,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/*
+  pulled from the Figma canvas (Selection colors + text style inspector) since
+  no named Color styles exist yet — only Text styles. re-check against real
+  Figma Styles once the designer adds them.
+*/
+:root {
+  --color-bg: #ffffff;
+  --color-bg-inverse: #000000;
+  --color-text: #000000;
+  --color-text-inverse: #ffffff;
+  --color-muted: #757575;
+  --color-muted-strong: #4b4b4b;
+  --color-border: #d9d9d9;
+  --color-border-inverse: #353535;
+  --color-surface-alt: #f0f0f0;
+  --color-live: #ff0000;
+  --color-offline: #707070;
+
+  --font-body: "Familjen Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+
+  --page-gutter: var(--space-sm);
+  --max-width: 1440px;
+
+  --nowplaying-height: 64px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-gutter: var(--space-lg);
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --page-gutter: var(--space-xl);
+  }
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: var(--nowplaying-height);
+}
+
+body.theme-dark {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

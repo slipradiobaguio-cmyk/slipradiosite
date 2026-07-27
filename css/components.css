@@ -1,0 +1,253 @@
+/* show cards — grid of thumbnail + title, NTS/Test-style */
+
+.show-card {
+  display: block;
+  background: var(--color-bg);
+}
+
+.show-card__thumb {
+  aspect-ratio: 1 / 1;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  background-size: cover;
+  background-position: center;
+}
+
+.show-card__thumb--empty {
+  background-image: linear-gradient(to top right, transparent calc(50% - 1px), var(--color-border), transparent calc(50% + 1px)),
+    linear-gradient(to top left, transparent calc(50% - 1px), var(--color-border), transparent calc(50% + 1px));
+}
+
+.show-card__meta {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  padding: 0.6rem 0.75rem;
+}
+
+.show-card__title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.show-card__sub {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-offline);
+  margin-top: 0.2rem;
+}
+
+/* schedule table (home) */
+
+.schedule {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.schedule__head {
+  display: flex;
+  justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  padding-block: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.schedule__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding-block: 0.45rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.schedule__time {
+  white-space: nowrap;
+  color: var(--color-muted);
+}
+
+.schedule__row--live .schedule__time {
+  color: var(--color-live);
+}
+
+.schedule__show {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.schedule__show-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.schedule__artist {
+  color: var(--color-muted);
+}
+
+.schedule__genres {
+  color: var(--color-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-live);
+  margin-right: 0.35rem;
+}
+
+/* nav LIVE indicator */
+
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--color-live);
+}
+
+.live-indicator[data-state="offline"] {
+  color: var(--color-offline);
+}
+
+.live-indicator[data-state="loading"] {
+  color: var(--color-muted);
+}
+
+.live-indicator[data-state="error"] {
+  color: var(--color-muted-strong);
+}
+
+.live-indicator .live-dot {
+  background: currentColor;
+}
+
+/* now-playing player bar — fixed footer, 4 states */
+
+.now-playing {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 20;
+  height: var(--nowplaying-height);
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-inline: var(--page-gutter);
+}
+
+.now-playing__toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.now-playing__toggle:disabled {
+  opacity: 0.35;
+}
+
+.now-playing__status {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid currentColor;
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.now-playing__info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.now-playing__title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.now-playing__artist {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.now-playing__volume {
+  display: none;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .now-playing__volume {
+    display: flex;
+  }
+}
+
+/* state-specific looks */
+
+.now-playing[data-state="live"] .now-playing__status {
+  color: var(--color-live);
+  border-color: var(--color-live);
+}
+
+.now-playing[data-state="loading"] .now-playing__status {
+  color: var(--color-muted);
+}
+
+.now-playing[data-state="loading"] .now-playing__title,
+.now-playing[data-state="loading"] .now-playing__artist {
+  opacity: 0.5;
+}
+
+.now-playing[data-state="offline"] .now-playing__status {
+  color: var(--color-offline);
+  border-color: var(--color-offline);
+}
+
+.now-playing[data-state="offline"] .now-playing__title,
+.now-playing[data-state="offline"] .now-playing__artist {
+  color: var(--color-muted);
+}
+
+.now-playing[data-state="error"] .now-playing__status {
+  color: var(--color-muted-strong);
+  border-color: var(--color-muted-strong);
+}
+
+/* dark-theme pages (about, support-us) keep the player bar light,
+   matches the Figma frames — player stays on white regardless of page theme */
+
+body.theme-dark .now-playing {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

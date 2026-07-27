@@ -1,0 +1,18 @@
+name = "slip-radio-site"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "."
+
+# local dev bindings for `wrangler pages dev .` — production bindings are
+# configured separately in the Cloudflare Pages dashboard (Settings > Functions)
+[[kv_namespaces]]
+binding = "SHOWS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "slip-radio-thumbnails"
+
+[vars]
+# leave unset until the radio streaming tool (AzuraCast or similar) is confirmed —
+# functions/api/now-playing.js reports "offline" when this is empty
+NOW_PLAYING_API_URL = ""

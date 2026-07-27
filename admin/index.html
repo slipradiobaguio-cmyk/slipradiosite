@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Slip Radio</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body style="padding-bottom: var(--space-lg);">
+  <header class="site-header container">
+    <a href="/" class="site-logo">
+      <img src="/assets/icons/logo.png" alt="Slip Radio" class="site-logo__img">
+    </a>
+    <span class="admin-status">Admin</span>
+  </header>
+
+  <main class="container admin-layout">
+    <!--
+      Access to this page/API is expected to be gated by Cloudflare Access
+      at the platform level (dashboard config), not by any login code here.
+    -->
+    <section>
+      <h1 class="page-title">Shows</h1>
+      <div class="admin-list" data-admin-list aria-busy="true"></div>
+    </section>
+
+    <section>
+      <h2 data-form-title>Add a show</h2>
+      <p class="admin-status" data-admin-status></p>
+      <form class="admin-form" data-admin-form>
+        <div>
+          <label for="field-title">Title</label>
+          <input type="text" id="field-title" name="title" required>
+        </div>
+        <div>
+          <label for="field-slug">Slug</label>
+          <input type="text" id="field-slug" name="slug" required>
+        </div>
+        <div class="admin-form__row admin-form__row--split">
+          <div>
+            <label for="field-date">Date</label>
+            <input type="date" id="field-date" name="date">
+          </div>
+          <div>
+            <label for="field-time">Time</label>
+            <input type="text" id="field-time" name="time" placeholder="16:00 - 18:00">
+          </div>
+        </div>
+        <div>
+          <label for="field-genres">Genres</label>
+          <input type="text" id="field-genres" name="genres" placeholder="Ambient, Techno, Dub">
+        </div>
+        <div>
+          <label for="field-guestName">Guest name / collective</label>
+          <input type="text" id="field-guestName" name="guestName">
+        </div>
+        <div>
+          <label for="field-socialLink">Social media link</label>
+          <input type="url" id="field-socialLink" name="socialLink" placeholder="https://">
+        </div>
+        <div>
+          <label for="field-shortDescription">Short description</label>
+          <textarea id="field-shortDescription" name="shortDescription"></textarea>
+        </div>
+        <div>
+          <label for="field-longDescription">Long description</label>
+          <textarea id="field-longDescription" name="longDescription"></textarea>
+        </div>
+        <div>
+          <label for="field-bio">Guest bio</label>
+          <textarea id="field-bio" name="bio"></textarea>
+        </div>
+        <div>
+          <label>Hero image</label>
+          <div class="admin-form__thumb-preview" data-field="heroImagePreview"></div>
+          <input type="file" accept="image/*">
+        </div>
+        <div class="admin-list__actions">
+          <button type="submit" class="btn btn--primary">Save</button>
+          <button type="button" class="btn" data-action="cancel">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/admin.js" defer></script>
+</body>
+</html>
