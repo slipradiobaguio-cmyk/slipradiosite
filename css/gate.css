@@ -6,9 +6,13 @@
   align-items: center;
   justify-content: center;
   padding: var(--page-gutter);
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+}
+
+body.theme-dark .site-gate {
+  background: rgba(0, 0, 0, 0.22);
 }
 
 body.site-gate-active {
@@ -17,17 +21,21 @@ body.site-gate-active {
 
 .site-gate__panel {
   width: 100%;
-  max-width: 22rem;
-  padding: var(--space-lg) var(--space-md);
-  background: var(--color-bg-inverse);
-  color: var(--color-text-inverse);
-  border: 1px solid var(--color-border-inverse);
+  max-width: 19rem;
+  padding: var(--space-md);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-text);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   text-align: center;
 }
 
 .site-gate__eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-live);
@@ -35,14 +43,14 @@ body.site-gate-active {
 }
 
 .site-gate__title {
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 600;
   margin-bottom: var(--space-xs);
 }
 
 .site-gate__copy {
   color: var(--color-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin-bottom: var(--space-md);
 }
 
@@ -54,12 +62,13 @@ body.site-gate-active {
 .site-gate__input {
   flex: 1;
   min-width: 0;
-  padding: 0.65rem 0.75rem;
-  background: transparent;
-  border: 1px solid var(--color-border-inverse);
-  color: var(--color-text-inverse);
+  padding: 0.6rem 0.7rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  color: var(--color-text);
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .site-gate__input::placeholder {
@@ -68,28 +77,29 @@ body.site-gate-active {
 
 .site-gate__input:focus {
   outline: none;
-  border-color: var(--color-text-inverse);
+  border-color: var(--color-text);
 }
 
 .site-gate__submit {
-  padding: 0.65rem 1rem;
-  background: var(--color-text-inverse);
-  color: var(--color-bg-inverse);
-  border: 1px solid var(--color-text-inverse);
+  padding: 0.6rem 0.9rem;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-text);
+  border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
 }
 
 .site-gate__submit:hover {
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .site-gate__error {
   margin-top: var(--space-sm);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--color-live);
 }
