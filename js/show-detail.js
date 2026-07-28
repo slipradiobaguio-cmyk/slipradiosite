@@ -27,9 +27,7 @@
         .filter(Boolean)
         .join(" · ");
       root.querySelector("[data-field='genres']").textContent = show.genres || "";
-      root.querySelector("[data-field='shortDescription']").textContent = show.shortDescription || "";
-      root.querySelector("[data-field='longDescription']").textContent = show.longDescription || "";
-      root.querySelector("[data-field='bio']").textContent = show.bio || "";
+      root.querySelector("[data-field='description']").textContent = show.description || "";
 
       const socialLink = root.querySelector("[data-field='socialLink']");
       if (show.socialLink) {

@@ -18,8 +18,17 @@
     past: document.querySelector("[data-admin-list='past']"),
   };
 
-  const fields = ["title", "slug", "genres", "date", "time", "guestName", "socialLink", "bio", "shortDescription", "longDescription"];
+  const fields = ["title", "slug", "genres", "date", "time", "guestName", "socialLink", "description"];
   let editingSlug = null;
+
+  const timeInput = form.elements.namedItem("time");
+  const timePreset = form.querySelector("[data-time-preset]");
+  timePreset.addEventListener("change", () => {
+    if (timePreset.value && timePreset.value !== "custom") {
+      timeInput.value = timePreset.value;
+    }
+    if (timePreset.value !== "custom") timeInput.focus();
+  });
 
   function showTab(name) {
     tabPanels.forEach((panel) => {
@@ -106,6 +115,8 @@
       const input = form.elements.namedItem(key);
       if (input) input.value = show[key] || "";
     });
+    const matchingPreset = [...timePreset.options].some((opt) => opt.value === show.time);
+    timePreset.value = show.time ? (matchingPreset ? show.time : "custom") : "";
     form.querySelector("[data-field='heroImagePreview']").style.backgroundImage = show.heroImage
       ? `url('${show.heroImage}')`
       : "";

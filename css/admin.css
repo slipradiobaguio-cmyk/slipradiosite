@@ -105,6 +105,14 @@
   margin-bottom: 0.3rem;
 }
 
+.admin-form select {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  padding: 0.6rem;
+  background: var(--color-bg);
+  margin-bottom: 0.4rem;
+}
+
 .admin-form input[type="text"],
 .admin-form input[type="date"],
 .admin-form input[type="url"],

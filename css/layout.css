@@ -56,14 +56,19 @@ body.theme-dark .site-logo--text {
 /* mobile header — nav sits beside the logo instead of behind a menu toggle;
    sized down and tightened so the logo stays the visual anchor */
 @media (max-width: 767.98px) {
-  .site-nav__list {
-    gap: var(--space-sm);
-    font-size: 0.65rem;
+  .site-logo__img {
+    height: 28px;
   }
 
-  .live-indicator {
-    font-size: 0.65rem;
-    margin-left: var(--space-xs);
+  .site-nav__list {
+    gap: var(--space-xs);
+    font-size: 0.7rem;
+  }
+
+  /* extra specificity needed to beat components.css's unconditional .live-indicator rule */
+  .site-nav__list .live-indicator {
+    font-size: 0.7rem;
+    margin-left: 0.2rem;
   }
 }
 
@@ -171,11 +176,6 @@ body.theme-dark .site-logo--text {
   color: var(--color-muted);
   margin-top: var(--space-xs);
   margin-bottom: var(--space-md);
-}
-
-.show-detail__bio-heading {
-  margin-top: var(--space-lg);
-  font-size: 1.1rem;
 }
 
 /* shows grid */
