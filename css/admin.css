@@ -89,6 +89,23 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 767.98px) {
+  .admin-list__row {
+    flex-wrap: wrap;
+  }
+
+  .admin-list__actions {
+    flex-basis: 100%;
+    margin-top: var(--space-xs);
+  }
+
+  .admin-list__actions .btn {
+    flex: 1;
+    text-align: center;
+    padding-inline: 0.4rem;
+  }
+}
+
 .admin-form {
   display: grid;
   gap: var(--space-sm);

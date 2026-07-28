@@ -23,12 +23,19 @@
 
   const timeInput = form.elements.namedItem("time");
   const timePreset = form.querySelector("[data-time-preset]");
+
+  function syncTimeInputVisibility() {
+    timeInput.hidden = timePreset.value !== "custom";
+  }
+
   timePreset.addEventListener("change", () => {
     if (timePreset.value && timePreset.value !== "custom") {
       timeInput.value = timePreset.value;
     }
-    if (timePreset.value !== "custom") timeInput.focus();
+    syncTimeInputVisibility();
+    if (timePreset.value === "custom") timeInput.focus();
   });
+  syncTimeInputVisibility();
 
   function showTab(name) {
     tabPanels.forEach((panel) => {
@@ -117,6 +124,7 @@
     });
     const matchingPreset = [...timePreset.options].some((opt) => opt.value === show.time);
     timePreset.value = show.time ? (matchingPreset ? show.time : "custom") : "";
+    syncTimeInputVisibility();
     form.querySelector("[data-field='heroImagePreview']").style.backgroundImage = show.heroImage
       ? `url('${show.heroImage}')`
       : "";
@@ -134,6 +142,7 @@
     editingSlug = null;
     formTitleEl.textContent = "Add a show";
     setStatus("");
+    syncTimeInputVisibility();
   }
 
   form.elements.namedItem("title").addEventListener("input", (e) => {
