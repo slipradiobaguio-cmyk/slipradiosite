@@ -1,12 +1,41 @@
 (function () {
-  const listEl = document.querySelector("[data-admin-list]");
   const form = document.querySelector("[data-admin-form]");
+  if (!form) return;
+
   const statusEl = document.querySelector("[data-admin-status]");
-  if (!listEl || !form) return;
+  const listEmptyEl = document.querySelector("[data-list-empty]");
+  const formTitleEl = document.querySelector("[data-form-title]");
+  const tabButtons = document.querySelectorAll("[data-tab-button]");
+  const tabPanels = document.querySelectorAll("[data-tab-panel]");
+  const groups = {
+    today: document.querySelector("[data-group='today']"),
+    upcoming: document.querySelector("[data-group='upcoming']"),
+    past: document.querySelector("[data-group='past']"),
+  };
+  const lists = {
+    today: document.querySelector("[data-admin-list='today']"),
+    upcoming: document.querySelector("[data-admin-list='upcoming']"),
+    past: document.querySelector("[data-admin-list='past']"),
+  };
 
   const fields = ["title", "slug", "genres", "date", "time", "guestName", "socialLink", "bio", "shortDescription", "longDescription"];
-  const formTitleEl = document.querySelector("[data-form-title]");
   let editingSlug = null;
+
+  function showTab(name) {
+    tabPanels.forEach((panel) => {
+      panel.hidden = panel.dataset.tabPanel !== name;
+    });
+    tabButtons.forEach((button) => {
+      button.setAttribute("aria-selected", String(button.dataset.tabButton === name));
+    });
+  }
+
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.tabButton === "form" && !editingSlug) resetForm();
+      showTab(button.dataset.tabButton);
+    });
+  });
 
   function setStatus(message, tone) {
     statusEl.textContent = message || "";
@@ -22,6 +51,12 @@
       .replace(/(^-|-$)/g, "");
   }
 
+  function todayISO() {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
   function rowMarkup(show) {
     const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
     return `
@@ -29,9 +64,10 @@
         <div class="admin-list__thumb" ${thumb}></div>
         <div class="admin-list__meta">
           <div class="admin-list__title">${show.title}</div>
-          <div class="admin-list__sub">${show.guestName || ""} · ${show.date || "no date"}</div>
+          <div class="admin-list__sub">${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}</div>
         </div>
         <div class="admin-list__actions">
+          <a class="btn" href="/shows/${show.slug}" target="_blank" rel="noopener">View</a>
           <button type="button" class="btn" data-action="edit">Edit</button>
           <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
         </div>
@@ -43,9 +79,26 @@
     const res = await fetch("/api/shows", { cache: "no-store" });
     if (!res.ok) throw new Error(`shows ${res.status}`);
     const shows = await res.json();
-    listEl.innerHTML = shows.length
-      ? shows.map(rowMarkup).join("")
-      : `<p class="admin-status">No shows yet — add one below.</p>`;
+    const today = todayISO();
+
+    const buckets = { today: [], upcoming: [], past: [] };
+    shows.forEach((show) => {
+      if (show.date === today) buckets.today.push(show);
+      else if (show.date && show.date < today) buckets.past.push(show);
+      else buckets.upcoming.push(show);
+    });
+
+    buckets.today.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+    buckets.upcoming.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+    buckets.past.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+    listEmptyEl.hidden = shows.length > 0;
+
+    Object.keys(buckets).forEach((key) => {
+      const items = buckets[key];
+      groups[key].hidden = items.length === 0;
+      lists[key].innerHTML = items.map(rowMarkup).join("");
+    });
   }
 
   function fillForm(show) {
@@ -59,6 +112,8 @@
     form.dataset.heroImage = show.heroImage || "";
     editingSlug = show.slug;
     formTitleEl.textContent = `Edit "${show.title}"`;
+    setStatus("");
+    showTab("form");
   }
 
   function resetForm() {
@@ -67,6 +122,7 @@
     form.dataset.heroImage = "";
     editingSlug = null;
     formTitleEl.textContent = "Add a show";
+    setStatus("");
   }
 
   form.elements.namedItem("title").addEventListener("input", (e) => {
@@ -94,6 +150,12 @@
     }
   });
 
+  async function findExisting(slug) {
+    const res = await fetch(`/api/shows/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const payload = {};
@@ -107,6 +169,19 @@
       return;
     }
 
+    if (payload.slug !== editingSlug) {
+      const existing = await findExisting(payload.slug);
+      if (existing) {
+        const proceed = confirm(
+          `A show already exists at slug "${payload.slug}" ("${existing.title}"). Save anyway and overwrite it?`
+        );
+        if (!proceed) {
+          setStatus("Save cancelled — pick a different slug.", "error");
+          return;
+        }
+      }
+    }
+
     setStatus("Saving…");
     try {
       const res = await fetch(`/api/admin/shows/${encodeURIComponent(payload.slug)}`, {
@@ -115,8 +190,14 @@
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`save ${res.status}`);
+
+      if (editingSlug && editingSlug !== payload.slug) {
+        await fetch(`/api/admin/shows/${encodeURIComponent(editingSlug)}`, { method: "DELETE" });
+      }
+
       setStatus("Saved.");
       resetForm();
+      showTab("list");
       await loadList();
     } catch (err) {
       console.error(err);
@@ -124,32 +205,37 @@
     }
   });
 
-  form.querySelector("[data-action='cancel']").addEventListener("click", resetForm);
+  form.querySelector("[data-action='cancel']").addEventListener("click", () => {
+    resetForm();
+    showTab("list");
+  });
 
-  listEl.addEventListener("click", async (e) => {
-    const button = e.target.closest("button[data-action]");
-    if (!button) return;
-    const row = button.closest("[data-slug]");
-    const slug = row.dataset.slug;
+  Object.values(lists).forEach((list) => {
+    list.addEventListener("click", async (e) => {
+      const button = e.target.closest("button[data-action]");
+      if (!button) return;
+      const row = button.closest("[data-slug]");
+      const slug = row.dataset.slug;
 
-    if (button.dataset.action === "edit") {
-      const res = await fetch(`/api/shows/${encodeURIComponent(slug)}`);
-      if (res.ok) fillForm(await res.json());
-      return;
-    }
-
-    if (button.dataset.action === "delete") {
-      if (!confirm(`Delete "${slug}"? This can't be undone.`)) return;
-      setStatus("Deleting…");
-      try {
-        const res = await fetch(`/api/admin/shows/${encodeURIComponent(slug)}`, { method: "DELETE" });
-        if (!res.ok) throw new Error(`delete ${res.status}`);
-        setStatus("Deleted.");
-        await loadList();
-      } catch (err) {
-        setStatus("Couldn't delete — try again.", "error");
+      if (button.dataset.action === "edit") {
+        const res = await fetch(`/api/shows/${encodeURIComponent(slug)}`);
+        if (res.ok) fillForm(await res.json());
+        return;
       }
-    }
+
+      if (button.dataset.action === "delete") {
+        if (!confirm(`Delete "${slug}"? This can't be undone.`)) return;
+        setStatus("Deleting…");
+        try {
+          const res = await fetch(`/api/admin/shows/${encodeURIComponent(slug)}`, { method: "DELETE" });
+          if (!res.ok) throw new Error(`delete ${res.status}`);
+          setStatus("Deleted.");
+          await loadList();
+        } catch (err) {
+          setStatus("Couldn't delete — try again.", "error");
+        }
+      }
+    });
   });
 
   loadList().catch(() => setStatus("Couldn't load shows.", "error"));

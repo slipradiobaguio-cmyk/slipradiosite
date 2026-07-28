@@ -95,6 +95,15 @@
   white-space: nowrap;
 }
 
+.schedule__row:hover {
+  background: var(--color-surface-alt);
+}
+
+.schedule__empty {
+  color: var(--color-muted);
+  padding-block: var(--space-sm);
+}
+
 .live-dot {
   display: inline-block;
   width: 6px;

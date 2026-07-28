@@ -46,47 +46,7 @@
           <span>Schedule</span>
           <span data-clock></span>
         </div>
-        <!-- placeholder rows — wire to the radio server's schedule endpoint once the streaming tool is confirmed -->
-        <div class="schedule__row">
-          <span class="schedule__time">08:00 – 10:00</span>
-          <span class="schedule__show">
-            <span class="schedule__show-title">Show Title</span>
-            <span class="schedule__artist">Artist</span>
-          </span>
-          <span class="schedule__genres">Genres</span>
-        </div>
-        <div class="schedule__row schedule__row--live">
-          <span class="schedule__time">10:00 – 12:00</span>
-          <span class="schedule__show">
-            <span class="schedule__show-title">Show Title</span>
-            <span class="schedule__artist">Artist</span>
-          </span>
-          <span class="schedule__genres">Genres</span>
-        </div>
-        <div class="schedule__row">
-          <span class="schedule__time">12:00 – 14:00</span>
-          <span class="schedule__show">
-            <span class="schedule__show-title">Show Title</span>
-            <span class="schedule__artist">Artist</span>
-          </span>
-          <span class="schedule__genres">Genres</span>
-        </div>
-        <div class="schedule__row">
-          <span class="schedule__time">14:00 – 16:00</span>
-          <span class="schedule__show">
-            <span class="schedule__show-title">Show Title</span>
-            <span class="schedule__artist">Artist</span>
-          </span>
-          <span class="schedule__genres">Genres</span>
-        </div>
-        <div class="schedule__row">
-          <span class="schedule__time">16:00 – 18:00</span>
-          <span class="schedule__show">
-            <span class="schedule__show-title">Show Title</span>
-            <span class="schedule__artist">Artist</span>
-          </span>
-          <span class="schedule__genres">Genres</span>
-        </div>
+        <div class="schedule__rows" data-schedule-rows aria-busy="true"></div>
       </div>
     </section>
   </main>
@@ -131,5 +91,6 @@
   <script src="/js/nav.js" defer></script>
   <script src="/js/now-playing.js" defer></script>
   <script src="/js/shows.js" defer></script>
+  <script src="/js/schedule.js" defer></script>
 </body>
 </html>

@@ -26,14 +26,34 @@
       Access to this page/API is expected to be gated by Cloudflare Access
       at the platform level (dashboard config), not by any login code here.
     -->
-    <section>
-      <h1 class="page-title">Shows</h1>
-      <div class="admin-list" data-admin-list aria-busy="true"></div>
+    <h1 class="page-title">Shows</h1>
+
+    <div class="admin-tabs" role="tablist">
+      <button type="button" class="admin-tabs__btn" data-tab-button="list" role="tab" aria-selected="true">List</button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="form" role="tab" aria-selected="false">Add show</button>
+    </div>
+
+    <p class="admin-status" data-admin-status></p>
+
+    <section data-tab-panel="list">
+      <p class="admin-status" data-list-empty hidden>No shows yet — add one below.</p>
+
+      <div class="admin-group" data-group="today" hidden>
+        <h2 class="admin-group__title">Today</h2>
+        <div class="admin-list" data-admin-list="today"></div>
+      </div>
+      <div class="admin-group" data-group="upcoming" hidden>
+        <h2 class="admin-group__title">Upcoming</h2>
+        <div class="admin-list" data-admin-list="upcoming"></div>
+      </div>
+      <div class="admin-group" data-group="past" hidden>
+        <h2 class="admin-group__title">Past</h2>
+        <div class="admin-list" data-admin-list="past"></div>
+      </div>
     </section>
 
-    <section>
+    <section data-tab-panel="form" hidden>
       <h2 data-form-title>Add a show</h2>
-      <p class="admin-status" data-admin-status></p>
       <form class="admin-form" data-admin-form>
         <div>
           <label for="field-title">Title</label>
