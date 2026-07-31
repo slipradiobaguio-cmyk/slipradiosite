@@ -1,7 +1,15 @@
 import { jsonResponse } from "../_utils.js";
 
+const WEBHOOK_STALE_MS = 5 * 60 * 1000;
+
 // AzuraCast's /api/nowplaying/{shortcode} endpoint
 export async function onRequestGet({ env }) {
+  const cached = await env.SHOWS.get("live:status", "json");
+  if (cached && Date.now() - cached.updatedAt < WEBHOOK_STALE_MS) {
+    const { updatedAt, ...body } = cached;
+    return jsonResponse({ nextShow: null, ...body });
+  }
+
   const upstreamUrl = env.NOW_PLAYING_API_URL;
 
   if (!upstreamUrl) {
