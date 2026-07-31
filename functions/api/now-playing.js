@@ -1,7 +1,6 @@
 import { jsonResponse } from "../_utils.js";
 
-// radio streaming tool (AzuraCast or similar) isn't confirmed yet — once it is,
-// set NOW_PLAYING_API_URL and map the response fields below to match its shape
+// AzuraCast's /api/nowplaying/{shortcode} endpoint
 export async function onRequestGet({ env }) {
   const upstreamUrl = env.NOW_PLAYING_API_URL;
 
@@ -14,12 +13,18 @@ export async function onRequestGet({ env }) {
     if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
     const data = await upstream.json();
 
+    const isLive = Boolean(data.live && data.live.is_live);
+    const song = data.now_playing && data.now_playing.song;
+
     return jsonResponse({
-      live: Boolean(data.live),
-      title: data.title || null,
-      dj: data.dj || data.artist || null,
-      streamUrl: data.streamUrl || null,
-      nextShow: data.nextShow || null,
+      live: isLive,
+      title: song ? song.title : null,
+      dj: isLive ? data.live.streamer_name || null : song ? song.artist || null : null,
+      streamUrl: data.station ? data.station.listen_url : null,
+      nextShow:
+        data.playing_next && data.playing_next.song
+          ? data.playing_next.song.title
+          : null,
     });
   } catch (err) {
     return jsonResponse({ live: false, error: "upstream_unreachable" }, 502);

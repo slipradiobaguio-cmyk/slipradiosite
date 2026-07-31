@@ -11,6 +11,4 @@ binding = "THUMBNAILS"
 bucket_name = "slip-radio-thumbnails"
 
 [vars]
-# leave unset until the radio streaming tool (AzuraCast or similar) is confirmed —
-# functions/api/now-playing.js reports "offline" when this is empty
-NOW_PLAYING_API_URL = ""
+NOW_PLAYING_API_URL = "https://a8.asurahosting.com/api/nowplaying/slip_radio"
