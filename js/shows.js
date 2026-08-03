@@ -1,6 +1,12 @@
 (function () {
   const grid = document.querySelector(".shows-grid");
-  if (!grid) return;
+  if (!grid) {
+    if (window.__srHeroCarouselCleanup) {
+      window.__srHeroCarouselCleanup();
+      window.__srHeroCarouselCleanup = null;
+    }
+    return;
+  }
 
   function cardMarkup(show, placeholder) {
     const thumb = show.heroImage
@@ -26,6 +32,10 @@
   }
 
   function initHeroCarousel() {
+    if (window.__srHeroCarouselCleanup) {
+      window.__srHeroCarouselCleanup();
+      window.__srHeroCarouselCleanup = null;
+    }
     if (!grid.classList.contains("shows-grid--home")) return;
     const progressFill = grid.parentElement.querySelector(".hero-carousel-progress__fill");
     const mq = window.matchMedia("(max-width: 767.98px)");
@@ -67,11 +77,20 @@
       updateProgress();
     }
 
+    const onTouchEnd = () => sync();
     grid.addEventListener("scroll", updateProgress, { passive: true });
     grid.addEventListener("touchstart", stop, { passive: true });
-    grid.addEventListener("touchend", () => sync(), { passive: true });
+    grid.addEventListener("touchend", onTouchEnd, { passive: true });
     mq.addEventListener("change", sync);
     sync();
+
+    window.__srHeroCarouselCleanup = () => {
+      stop();
+      grid.removeEventListener("scroll", updateProgress);
+      grid.removeEventListener("touchstart", stop);
+      grid.removeEventListener("touchend", onTouchEnd);
+      mq.removeEventListener("change", sync);
+    };
   }
 
   async function load() {

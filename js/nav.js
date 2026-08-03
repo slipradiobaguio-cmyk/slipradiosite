@@ -7,6 +7,8 @@
     }
   });
 
+  if (window.__srClockInterval) clearInterval(window.__srClockInterval);
+
   const clock = document.querySelector("[data-clock]");
   if (clock) {
     const update = () => {
@@ -18,6 +20,6 @@
       });
     };
     update();
-    setInterval(update, 30000);
+    window.__srClockInterval = setInterval(update, 30000);
   }
 })();
