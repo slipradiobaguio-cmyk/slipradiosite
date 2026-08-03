@@ -31,7 +31,9 @@
       titleEl.textContent = data.title || "Untitled set";
       artistEl.textContent = data.dj || data.artist || "";
       toggleBtn.disabled = false;
-      audio.src = data.streamUrl || "";
+      if (data.streamUrl && audio.src !== data.streamUrl) {
+        audio.src = data.streamUrl;
+      }
     } else if (state === "offline") {
       titleEl.textContent = "No one's live right now";
       artistEl.textContent = data && data.nextShow ? `Next: ${data.nextShow}` : "";
