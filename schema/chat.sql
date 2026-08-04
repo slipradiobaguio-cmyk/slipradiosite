@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS messages (
   name TEXT NOT NULL,
   body TEXT NOT NULL,
   is_dj INTEGER NOT NULL DEFAULT 0,
+  is_system INTEGER NOT NULL DEFAULT 0,
   ip_hash TEXT,
   created_at INTEGER NOT NULL,
   deleted_at INTEGER

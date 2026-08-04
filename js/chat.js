@@ -10,7 +10,6 @@
 
   const fab = widget.querySelector(".chat-fab");
   const badge = widget.querySelector("[data-chat-badge]");
-  const minimizeBtn = widget.querySelector("[data-chat-minimize]");
   const closeBtn = widget.querySelector("[data-chat-close]");
   const feed = widget.querySelector("[data-chat-feed]");
   const input = widget.querySelector("[data-chat-input]");
@@ -73,6 +72,15 @@
 
   function renderMessage(msg, mine) {
     clearFeedEmptyState();
+
+    if (msg.isSystem) {
+      const systemRow = document.createElement("div");
+      systemRow.className = "chat-msg--system";
+      systemRow.textContent = msg.body;
+      feed.appendChild(systemRow);
+      if (msg.id > lastId) lastId = msg.id;
+      return;
+    }
 
     const row = document.createElement("div");
     row.className = "chat-msg" + (msg.isDj ? " chat-msg--dj" : mine ? " chat-msg--mine" : "");
@@ -159,8 +167,8 @@
         updateActionUI();
         return;
       }
-      const msg = await res.json();
-      renderMessage(msg, true);
+      const data = await res.json();
+      data.messages.forEach((msg, i) => renderMessage(msg, i === data.messages.length - 1));
       scrollToBottom();
     } catch (err) {
       input.value = text;
@@ -201,7 +209,6 @@
   }
 
   fab.addEventListener("click", openWidget);
-  minimizeBtn.addEventListener("click", closeWidget);
   closeBtn.addEventListener("click", closeWidget);
   actionBtn.addEventListener("click", handleAction);
   input.addEventListener("input", updateActionUI);

@@ -41,13 +41,19 @@ async function isBanned(env, clientId, ipHash) {
 
 // name is fixed the moment a clientId's first message lands — later posts
 // can't rename that identity, whatever the request claims the name is
-async function resolveName(env, clientId, providedName) {
-  const row = await env.CHAT.prepare(
-    "SELECT name FROM messages WHERE client_id = ?1 ORDER BY id ASC LIMIT 1"
-  )
+async function findExisting(env, clientId) {
+  return env.CHAT.prepare("SELECT name FROM messages WHERE client_id = ?1 ORDER BY id ASC LIMIT 1")
     .bind(clientId)
     .first();
-  return row ? row.name : providedName;
+}
+
+async function insertMessage(env, { clientId, name, body, isSystem, ipHash, createdAt }) {
+  const result = await env.CHAT.prepare(
+    "INSERT INTO messages (client_id, name, body, is_dj, is_system, ip_hash, created_at) VALUES (?1, ?2, ?3, 0, ?4, ?5, ?6)"
+  )
+    .bind(clientId, name, body, isSystem ? 1 : 0, ipHash, createdAt)
+    .run();
+  return { id: result.meta.last_row_id, name, body, isDj: false, isSystem: Boolean(isSystem), createdAt };
 }
 
 function toMessage(row) {
@@ -56,6 +62,7 @@ function toMessage(row) {
     name: row.name,
     body: row.body,
     isDj: Boolean(row.is_dj),
+    isSystem: Boolean(row.is_system),
     createdAt: row.created_at,
   };
 }
@@ -69,12 +76,12 @@ export async function onRequestGet({ request, env }) {
   const rows =
     after > 0
       ? await env.CHAT.prepare(
-          "SELECT id, name, body, is_dj, created_at FROM messages WHERE id > ?1 AND deleted_at IS NULL ORDER BY id ASC LIMIT ?2"
+          "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE id > ?1 AND deleted_at IS NULL ORDER BY id ASC LIMIT ?2"
         )
           .bind(after, PAGE_SIZE)
           .all()
       : await env.CHAT.prepare(
-          "SELECT id, name, body, is_dj, created_at FROM messages WHERE deleted_at IS NULL ORDER BY id DESC LIMIT ?1"
+          "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE deleted_at IS NULL ORDER BY id DESC LIMIT ?1"
         )
           .bind(PAGE_SIZE)
           .all();
@@ -109,7 +116,8 @@ export async function onRequestPost({ request, env }) {
     return jsonResponse({ error: "banned" }, 403);
   }
 
-  const name = await resolveName(env, clientId, providedName);
+  const existing = await findExisting(env, clientId);
+  const name = existing ? existing.name : providedName;
   if (!name) return jsonResponse({ error: "name_required" }, 400);
 
   const createdAt = Date.now();
@@ -119,14 +127,20 @@ export async function onRequestPost({ request, env }) {
   ]);
   if (!clientOk || !ipOk) return jsonResponse({ error: "rate_limited" }, 429);
 
-  const result = await env.CHAT.prepare(
-    "INSERT INTO messages (client_id, name, body, is_dj, ip_hash, created_at) VALUES (?1, ?2, ?3, 0, ?4, ?5)"
-  )
-    .bind(clientId, name, body, ipHash, createdAt)
-    .run();
+  const messages = [];
+  if (!existing) {
+    messages.push(
+      await insertMessage(env, {
+        clientId,
+        name,
+        body: `${name} has entered the chat`,
+        isSystem: true,
+        ipHash,
+        createdAt,
+      })
+    );
+  }
+  messages.push(await insertMessage(env, { clientId, name, body, isSystem: false, ipHash, createdAt }));
 
-  return jsonResponse(
-    { id: result.meta.last_row_id, name, body, isDj: false, createdAt },
-    201
-  );
+  return jsonResponse({ messages }, 201);
 }

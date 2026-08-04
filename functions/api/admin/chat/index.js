@@ -7,7 +7,7 @@ const MESSAGE_MAX = 240;
 // them to moderate and ban, listeners never see either
 export async function onRequestGet({ env }) {
   const rows = await env.CHAT.prepare(
-    "SELECT id, client_id, name, body, is_dj, ip_hash, created_at, deleted_at FROM messages ORDER BY id DESC LIMIT 100"
+    "SELECT id, client_id, name, body, is_dj, is_system, ip_hash, created_at, deleted_at FROM messages ORDER BY id DESC LIMIT 100"
   ).all();
 
   return jsonResponse({
@@ -17,6 +17,7 @@ export async function onRequestGet({ env }) {
       name: row.name,
       body: row.body,
       isDj: Boolean(row.is_dj),
+      isSystem: Boolean(row.is_system),
       ipHash: row.ip_hash,
       createdAt: row.created_at,
       deleted: Boolean(row.deleted_at),
