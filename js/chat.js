@@ -70,6 +70,16 @@
     return feed.scrollHeight - feed.scrollTop - feed.clientHeight < 24;
   }
 
+  const AVATAR_TINTS = 5;
+
+  function avatarTint(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = (hash * 31 + name.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash) % AVATAR_TINTS;
+  }
+
   function renderMessage(msg, mine) {
     clearFeedEmptyState();
 
@@ -86,7 +96,7 @@
     row.className = "chat-msg" + (msg.isDj ? " chat-msg--dj" : mine ? " chat-msg--mine" : "");
 
     const avatar = document.createElement("div");
-    avatar.className = "chat-avatar";
+    avatar.className = "chat-avatar chat-avatar--" + avatarTint(msg.name);
     avatar.textContent = msg.name.charAt(0).toUpperCase();
 
     const body = document.createElement("div");
