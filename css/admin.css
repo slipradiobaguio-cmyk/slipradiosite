@@ -31,79 +31,174 @@
 }
 
 .admin-group {
-  margin-top: var(--space-md);
+  margin-top: var(--space-lg);
 }
 
 .admin-group__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-muted);
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--space-sm);
 }
+
+.admin-group__count {
+  color: var(--color-border);
+}
+
+/* on-air status strip — mirrors the nav's live-indicator so the admin reads
+   at a glance the same way the public site does */
+
+.admin-live-banner {
+  padding-block: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-sm);
+}
+
+.admin-live-banner .live-indicator {
+  font-size: 0.8rem;
+}
+
+/* show grid — same square-thumb + black meta bar language as .show-card,
+   so the admin reads as part of the same station instead of a form builder */
 
 .admin-list {
-  border: 1px solid var(--color-border);
-}
-
-.admin-list__row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-sm);
-  padding: var(--space-sm);
-  border-bottom: 1px solid var(--color-border);
 }
 
-.admin-list__row:last-child {
-  border-bottom: none;
+@media (min-width: 600px) {
+  .admin-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.admin-list__thumb {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
+@media (min-width: 1024px) {
+  .admin-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  .admin-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.admin-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-card__thumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
   background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
   background-size: cover;
   background-position: center;
 }
 
-.admin-list__meta {
-  flex: 1;
-  min-width: 0;
+.admin-card__thumb--empty {
+  background-image: linear-gradient(to top right, transparent calc(50% - 1px), var(--color-border), transparent calc(50% + 1px)),
+    linear-gradient(to top left, transparent calc(50% - 1px), var(--color-border), transparent calc(50% + 1px));
 }
 
-.admin-list__title {
-  font-weight: 600;
-}
-
-.admin-list__sub {
+.admin-card__badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-live);
+  color: var(--color-text-inverse);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-muted);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.5rem;
 }
 
-.admin-list__actions {
+.admin-card__badge .live-dot {
+  background: var(--color-text-inverse);
+  animation: admin-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes admin-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.admin-card__meta {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+  padding: 0.6rem 0.75rem;
+}
+
+.admin-card__title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-card__sub {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-offline);
+  margin-top: 0.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-card__actions {
   display: flex;
-  gap: var(--space-xs);
-  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-top: none;
 }
 
-@media (max-width: 767.98px) {
-  .admin-list__row {
-    flex-wrap: wrap;
-  }
+.icon-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
 
-  .admin-list__actions {
-    flex-basis: 100%;
-    margin-top: var(--space-xs);
-  }
+.icon-btn:last-child {
+  border-right: none;
+}
 
-  .admin-list__actions .btn {
-    flex: 1;
-    text-align: center;
-    padding-inline: 0.4rem;
-  }
+.icon-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.icon-btn:hover {
+  background: var(--color-surface-alt);
+}
+
+.icon-btn--live[aria-pressed="true"] {
+  background: var(--color-live);
+  color: var(--color-text-inverse);
+}
+
+.icon-btn--danger:hover {
+  color: var(--color-live);
 }
 
 .admin-form {

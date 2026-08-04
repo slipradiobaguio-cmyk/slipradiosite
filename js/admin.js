@@ -17,10 +17,26 @@
     upcoming: document.querySelector("[data-admin-list='upcoming']"),
     past: document.querySelector("[data-admin-list='past']"),
   };
+  const groupCounts = {
+    today: document.querySelector("[data-group-count='today']"),
+    upcoming: document.querySelector("[data-group-count='upcoming']"),
+    past: document.querySelector("[data-group-count='past']"),
+  };
 
   const fields = ["title", "slug", "genres", "date", "time", "guestName", "socialLink", "description"];
   let editingSlug = null;
   let onAirSlug = null;
+  let cachedShows = [];
+
+  const banner = document.querySelector("[data-onair-banner]");
+  const bannerLabel = document.querySelector("[data-onair-banner-label]");
+
+  const ICONS = {
+    view: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z"/><circle cx="8" cy="8" r="2"/></svg>',
+    edit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M11 2l3 3-8 8-3.5.5.5-3.5 8-8z"/></svg>',
+    live: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8 2v12M4.5 5a5 5 0 000 6M11.5 5a5 5 0 010 6M2.3 3a8 8 0 000 10M13.7 3a8 8 0 010 10"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>',
+    delete: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M6 4V2.5h4V4M4 4l.6 9a1 1 0 001 .9h4.8a1 1 0 001-.9L12 4"/></svg>',
+  };
 
   const timeInput = form.elements.namedItem("time");
   const timePreset = form.querySelector("[data-time-preset]");
@@ -74,33 +90,34 @@
     return local.toISOString().slice(0, 10);
   }
 
-  function rowMarkup(show) {
+  function cardMarkup(show) {
     const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
     const isOnAir = show.slug === onAirSlug;
+    const badge = isOnAir
+      ? `<span class="admin-card__badge"><span class="live-dot" aria-hidden="true"></span>On air</span>`
+      : "";
     return `
-      <div class="admin-list__row" data-slug="${show.slug}">
-        <div class="admin-list__thumb" ${thumb}></div>
-        <div class="admin-list__meta">
-          <div class="admin-list__title">${show.title}</div>
-          <div class="admin-list__sub">${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}</div>
+      <article class="admin-card" data-slug="${show.slug}">
+        <div class="admin-card__thumb${show.heroImage ? "" : " admin-card__thumb--empty"}" ${thumb}>${badge}</div>
+        <div class="admin-card__meta">
+          <div class="admin-card__title">${show.title}</div>
+          <div class="admin-card__sub">${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}</div>
         </div>
-        <div class="admin-list__actions">
-          <a class="btn" href="/shows/${show.slug}" target="_blank" rel="noopener">View</a>
-          <button type="button" class="btn" data-action="edit">Edit</button>
-          <button type="button" class="btn btn--live" data-action="toggle-live" aria-pressed="${isOnAir}">${isOnAir ? "On air ●" : "Go live"}</button>
-          <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
+        <div class="admin-card__actions">
+          <a class="icon-btn" href="/shows/${show.slug}" target="_blank" rel="noopener" aria-label="View show page">${ICONS.view}<span class="visually-hidden">View</span></a>
+          <button type="button" class="icon-btn" data-action="edit" aria-label="Edit show">${ICONS.edit}<span class="visually-hidden">Edit</span></button>
+          <button type="button" class="icon-btn icon-btn--live" data-action="toggle-live" aria-pressed="${isOnAir}" aria-label="${isOnAir ? "Clear on-air status" : "Mark this show on air"}">${ICONS.live}<span class="visually-hidden">${isOnAir ? "On air" : "Go live"}</span></button>
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" aria-label="Delete show">${ICONS.delete}<span class="visually-hidden">Delete</span></button>
         </div>
-      </div>
+      </article>
     `;
   }
 
-  function syncLiveButtons() {
-    document.querySelectorAll("[data-action='toggle-live']").forEach((button) => {
-      const slug = button.closest("[data-slug]").dataset.slug;
-      const isOnAir = slug === onAirSlug;
-      button.setAttribute("aria-pressed", String(isOnAir));
-      button.textContent = isOnAir ? "On air ●" : "Go live";
-    });
+  function updateBanner() {
+    if (!banner) return;
+    const onAirShow = cachedShows.find((show) => show.slug === onAirSlug);
+    banner.dataset.state = onAirShow ? "live" : "offline";
+    bannerLabel.textContent = onAirShow ? `On air — ${onAirShow.title}` : "Nothing marked on air";
   }
 
   async function loadOnAirStatus() {
@@ -110,17 +127,11 @@
     onAirSlug = onAir;
   }
 
-  async function loadList() {
-    const [, res] = await Promise.all([
-      loadOnAirStatus().catch(() => {}),
-      fetch("/api/shows", { cache: "no-store" }),
-    ]);
-    if (!res.ok) throw new Error(`shows ${res.status}`);
-    const shows = await res.json();
+  function renderLists() {
     const today = todayISO();
 
     const buckets = { today: [], upcoming: [], past: [] };
-    shows.forEach((show) => {
+    cachedShows.forEach((show) => {
       if (show.date === today) buckets.today.push(show);
       else if (show.date && show.date < today) buckets.past.push(show);
       else buckets.upcoming.push(show);
@@ -130,13 +141,26 @@
     buckets.upcoming.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
     buckets.past.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
-    listEmptyEl.hidden = shows.length > 0;
+    listEmptyEl.hidden = cachedShows.length > 0;
 
     Object.keys(buckets).forEach((key) => {
       const items = buckets[key];
       groups[key].hidden = items.length === 0;
-      lists[key].innerHTML = items.map(rowMarkup).join("");
+      lists[key].innerHTML = items.map(cardMarkup).join("");
+      if (groupCounts[key]) groupCounts[key].textContent = items.length;
     });
+
+    updateBanner();
+  }
+
+  async function loadList() {
+    const [, res] = await Promise.all([
+      loadOnAirStatus().catch(() => {}),
+      fetch("/api/shows", { cache: "no-store" }),
+    ]);
+    if (!res.ok) throw new Error(`shows ${res.status}`);
+    cachedShows = await res.json();
+    renderLists();
   }
 
   function fillForm(show) {
@@ -277,8 +301,8 @@
           if (!res.ok) throw new Error(`live ${res.status}`);
           const { onAir } = await res.json();
           onAirSlug = onAir;
-          syncLiveButtons();
-          setStatus(goingLive ? `Marked "${row.querySelector(".admin-list__title").textContent}" on air.` : "Cleared on-air status.");
+          renderLists();
+          setStatus(goingLive ? `Marked "${row.querySelector(".admin-card__title").textContent}" on air.` : "Cleared on-air status.");
         } catch (err) {
           setStatus("Couldn't update on-air status — try again.", "error");
         } finally {

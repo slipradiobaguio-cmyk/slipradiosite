@@ -28,6 +28,13 @@
     -->
     <h1 class="page-title">Shows</h1>
 
+    <div class="admin-live-banner">
+      <span class="live-indicator" data-onair-banner data-state="offline">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="live-indicator__label" data-onair-banner-label>Checking on-air status…</span>
+      </span>
+    </div>
+
     <div class="admin-tabs" role="tablist">
       <button type="button" class="admin-tabs__btn" data-tab-button="list" role="tab" aria-selected="true">List</button>
       <button type="button" class="admin-tabs__btn" data-tab-button="form" role="tab" aria-selected="false">Add show</button>
@@ -39,15 +46,15 @@
       <p class="admin-status" data-list-empty hidden>No shows yet — add one below.</p>
 
       <div class="admin-group" data-group="today" hidden>
-        <h2 class="admin-group__title">Today</h2>
+        <h2 class="admin-group__title">Today <span class="admin-group__count" data-group-count="today"></span></h2>
         <div class="admin-list" data-admin-list="today"></div>
       </div>
       <div class="admin-group" data-group="upcoming" hidden>
-        <h2 class="admin-group__title">Upcoming</h2>
+        <h2 class="admin-group__title">Upcoming <span class="admin-group__count" data-group-count="upcoming"></span></h2>
         <div class="admin-list" data-admin-list="upcoming"></div>
       </div>
       <div class="admin-group" data-group="past" hidden>
-        <h2 class="admin-group__title">Past</h2>
+        <h2 class="admin-group__title">Past <span class="admin-group__count" data-group-count="past"></span></h2>
         <div class="admin-list" data-admin-list="past"></div>
       </div>
     </section>
