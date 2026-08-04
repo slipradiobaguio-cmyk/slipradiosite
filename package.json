@@ -2,7 +2,7 @@
   "name": "slip-radio-site",
   "private": true,
   "scripts": {
-    "dev": "wrangler pages dev . --kv SHOWS --r2 THUMBNAILS",
+    "dev": "wrangler pages dev . --kv SHOWS --kv CHAT_RL --r2 THUMBNAILS --d1 CHAT",
     "deploy": "wrangler pages deploy ."
   },
   "devDependencies": {

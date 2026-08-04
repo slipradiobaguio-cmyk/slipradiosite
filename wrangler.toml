@@ -6,9 +6,18 @@ pages_build_output_dir = "."
 binding = "SHOWS"
 id = "9470153371854d02bc402a79f8d0faa0"
 
+[[kv_namespaces]]
+binding = "CHAT_RL"
+id = "45b624986c794ceb85048b19a4f924e1"
+
 [[r2_buckets]]
 binding = "THUMBNAILS"
 bucket_name = "slip-radio-thumbnails"
+
+[[d1_databases]]
+binding = "CHAT"
+database_name = "slip-radio-chat"
+database_id = "22d45db1-3f39-4c97-8380-26e0ed0c515e"
 
 [vars]
 NOW_PLAYING_API_URL = "https://a8.asurahosting.com/api/nowplaying/slip_radio"

@@ -178,6 +178,26 @@ body.theme-dark .site-logo--text {
   margin-bottom: var(--space-md);
 }
 
+.show-detail__description {
+  white-space: pre-line;
+}
+
+/* desktop — photo capped and set beside the details instead of running
+   full-bleed above them */
+@media (min-width: 1440px) {
+  .show-detail__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 560px) 1fr;
+    align-items: start;
+    gap: var(--space-xl);
+    padding-inline: var(--page-gutter);
+  }
+
+  .show-detail__layout .container {
+    padding-inline: 0;
+  }
+}
+
 /* shows grid */
 
 .shows-grid {
