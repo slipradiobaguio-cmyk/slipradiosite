@@ -14,9 +14,17 @@
   async function load() {
     root.setAttribute("aria-busy", "true");
     try {
-      const res = await fetch(`/api/shows/${encodeURIComponent(slug)}`, { cache: "no-store" });
+      const [res, nowPlaying] = await Promise.all([
+        fetch(`/api/shows/${encodeURIComponent(slug)}`, { cache: "no-store" }),
+        fetch("/api/now-playing", { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ]);
       if (!res.ok) throw new Error(`show ${res.status}`);
       const show = await res.json();
+
+      const isOnAir = Boolean(nowPlaying && nowPlaying.live && nowPlaying.slug === slug);
+      root.querySelector("[data-field='onair']").hidden = !isOnAir;
 
       root.querySelector("[data-field='hero']").style.backgroundImage = show.heroImage
         ? `url('${show.heroImage}')`

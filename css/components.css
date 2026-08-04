@@ -6,6 +6,7 @@
 }
 
 .show-card__thumb {
+  position: relative;
   aspect-ratio: 1 / 1;
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
@@ -16,6 +17,48 @@
 .show-card__thumb--empty {
   background-image: linear-gradient(to top right, transparent calc(50% - 1px), var(--color-border), transparent calc(50% + 1px)),
     linear-gradient(to top left, transparent calc(50% - 1px), var(--color-border), transparent calc(50% + 1px));
+}
+
+/* "on air now" — a show-level badge, deliberately worded differently from
+   the nav's station-level "LIVE" so the two don't read as the same thing */
+
+.onair-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--color-live);
+  color: var(--color-text-inverse);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.55rem;
+}
+
+.onair-badge[hidden] {
+  display: none;
+}
+
+.onair-badge .live-dot {
+  margin-right: 0;
+  background: var(--color-text-inverse);
+  animation: onair-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes onair-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.show-card__badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+}
+
+.show-detail__onair {
+  margin-top: var(--space-xs);
 }
 
 .show-card__meta {
