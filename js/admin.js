@@ -20,6 +20,7 @@
 
   const fields = ["title", "slug", "genres", "date", "time", "guestName", "socialLink", "description"];
   let editingSlug = null;
+  let onAirSlug = null;
 
   const timeInput = form.elements.namedItem("time");
   const timePreset = form.querySelector("[data-time-preset]");
@@ -75,6 +76,7 @@
 
   function rowMarkup(show) {
     const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
+    const isOnAir = show.slug === onAirSlug;
     return `
       <div class="admin-list__row" data-slug="${show.slug}">
         <div class="admin-list__thumb" ${thumb}></div>
@@ -85,14 +87,34 @@
         <div class="admin-list__actions">
           <a class="btn" href="/shows/${show.slug}" target="_blank" rel="noopener">View</a>
           <button type="button" class="btn" data-action="edit">Edit</button>
+          <button type="button" class="btn btn--live" data-action="toggle-live" aria-pressed="${isOnAir}">${isOnAir ? "On air ●" : "Go live"}</button>
           <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
         </div>
       </div>
     `;
   }
 
+  function syncLiveButtons() {
+    document.querySelectorAll("[data-action='toggle-live']").forEach((button) => {
+      const slug = button.closest("[data-slug]").dataset.slug;
+      const isOnAir = slug === onAirSlug;
+      button.setAttribute("aria-pressed", String(isOnAir));
+      button.textContent = isOnAir ? "On air ●" : "Go live";
+    });
+  }
+
+  async function loadOnAirStatus() {
+    const res = await fetch("/api/admin/live", { cache: "no-store" });
+    if (!res.ok) throw new Error(`live ${res.status}`);
+    const { onAir } = await res.json();
+    onAirSlug = onAir;
+  }
+
   async function loadList() {
-    const res = await fetch("/api/shows", { cache: "no-store" });
+    const [, res] = await Promise.all([
+      loadOnAirStatus().catch(() => {}),
+      fetch("/api/shows", { cache: "no-store" }),
+    ]);
     if (!res.ok) throw new Error(`shows ${res.status}`);
     const shows = await res.json();
     const today = todayISO();
@@ -240,6 +262,28 @@
       if (button.dataset.action === "edit") {
         const res = await fetch(`/api/shows/${encodeURIComponent(slug)}`);
         if (res.ok) fillForm(await res.json());
+        return;
+      }
+
+      if (button.dataset.action === "toggle-live") {
+        const goingLive = slug !== onAirSlug;
+        button.disabled = true;
+        try {
+          const res = await fetch(`/api/admin/shows/${encodeURIComponent(slug)}/live`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ onAir: goingLive }),
+          });
+          if (!res.ok) throw new Error(`live ${res.status}`);
+          const { onAir } = await res.json();
+          onAirSlug = onAir;
+          syncLiveButtons();
+          setStatus(goingLive ? `Marked "${row.querySelector(".admin-list__title").textContent}" on air.` : "Cleared on-air status.");
+        } catch (err) {
+          setStatus("Couldn't update on-air status — try again.", "error");
+        } finally {
+          button.disabled = false;
+        }
         return;
       }
 

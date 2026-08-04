@@ -187,6 +187,16 @@
   color: var(--color-live);
 }
 
+.btn--live {
+  border-color: var(--color-live);
+  color: var(--color-live);
+}
+
+.btn--live[aria-pressed="true"] {
+  background: var(--color-live);
+  color: var(--color-bg);
+}
+
 .admin-status {
   font-family: var(--font-mono);
   font-size: 0.75rem;

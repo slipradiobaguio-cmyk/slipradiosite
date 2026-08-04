@@ -22,12 +22,31 @@ async function isIcecastSourceLive(streamUrl) {
   }
 }
 
+// A show marked "on air" in the admin takes over the displayed title/dj —
+// the actual live/offline detection still comes from AzuraCast/Icecast.
+async function getOnAirOverride(env) {
+  const slug = await env.SHOWS.get("onair:slug");
+  if (!slug) return null;
+  return env.SHOWS.get(`show:${slug}`, "json");
+}
+
+function applyOnAirOverride(body, onAirShow) {
+  if (!body.live || !onAirShow) return body;
+  return {
+    ...body,
+    title: onAirShow.title || body.title,
+    dj: onAirShow.guestName || body.dj,
+  };
+}
+
 // AzuraCast's /api/nowplaying/{shortcode} endpoint
 export async function onRequestGet({ env }) {
+  const onAirShow = await getOnAirOverride(env);
+
   const cached = await env.SHOWS.get("live:status", "json");
   if (cached && Date.now() - cached.updatedAt < WEBHOOK_STALE_MS) {
     const { updatedAt, ...body } = cached;
-    return jsonResponse({ nextShow: null, ...body });
+    return jsonResponse(applyOnAirOverride({ nextShow: null, ...body }, onAirShow));
   }
 
   const upstreamUrl = env.NOW_PLAYING_API_URL;
@@ -46,7 +65,7 @@ export async function onRequestGet({ env }) {
     const isLive = flagLive || (await isIcecastSourceLive(streamUrl));
     const song = data.now_playing && data.now_playing.song;
 
-    return jsonResponse({
+    const body = {
       live: isLive,
       title: isLive ? (song && song.title) || "Live now" : null,
       dj: isLive ? (data.live && data.live.streamer_name) || (song && song.artist) || null : null,
@@ -55,7 +74,9 @@ export async function onRequestGet({ env }) {
         data.playing_next && data.playing_next.song
           ? data.playing_next.song.title
           : null,
-    });
+    };
+
+    return jsonResponse(applyOnAirOverride(body, onAirShow));
   } catch (err) {
     return jsonResponse({ live: false, error: "upstream_unreachable" }, 502);
   }
