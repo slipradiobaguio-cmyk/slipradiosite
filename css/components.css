@@ -202,6 +202,14 @@
   gap: 0.1rem;
 }
 
+.now-playing__info[href] {
+  cursor: pointer;
+}
+
+.now-playing__info[href]:hover .now-playing__title {
+  text-decoration: underline;
+}
+
 .now-playing__title {
   font-family: var(--font-body);
   font-weight: 600;

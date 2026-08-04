@@ -36,6 +36,8 @@ function applyOnAirOverride(body, onAirShow) {
     ...body,
     title: onAirShow.title || body.title,
     dj: onAirShow.guestName || body.dj,
+    slug: onAirShow.slug,
+    artwork: onAirShow.heroImage || null,
   };
 }
 
