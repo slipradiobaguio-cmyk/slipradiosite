@@ -233,14 +233,44 @@
     }
   });
 
+  const MAX_THUMB_DIMENSION = 1600;
+  const THUMB_WEBP_QUALITY = 0.82;
+
+  async function prepareThumbnail(file) {
+    if (!("createImageBitmap" in window) || typeof OffscreenCanvas === "undefined") {
+      return file;
+    }
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      return file;
+    }
+    const scale = Math.min(1, MAX_THUMB_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    try {
+      const blob = await canvas.convertToBlob({ type: "image/webp", quality: THUMB_WEBP_QUALITY });
+      if (blob.type !== "image/webp") return file;
+      return blob;
+    } catch {
+      return file;
+    }
+  }
+
   const fileInput = form.querySelector("input[type='file']");
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files[0];
     if (!file) return;
     setStatus("Uploading thumbnail…");
     try {
+      const upload = await prepareThumbnail(file);
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", upload, upload === file ? file.name : "thumbnail.webp");
       const res = await fetch("/api/admin/upload", { method: "POST", body });
       if (!res.ok) throw new Error(`upload ${res.status}`);
       const { url } = await res.json();
