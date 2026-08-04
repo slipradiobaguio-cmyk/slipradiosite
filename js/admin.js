@@ -36,6 +36,7 @@
     edit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M11 2l3 3-8 8-3.5.5.5-3.5 8-8z"/></svg>',
     live: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8 2v12M4.5 5a5 5 0 000 6M11.5 5a5 5 0 010 6M2.3 3a8 8 0 000 10M13.7 3a8 8 0 010 10"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>',
     delete: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M6 4V2.5h4V4M4 4l.6 9a1 1 0 001 .9h4.8a1 1 0 001-.9L12 4"/></svg>',
+    kebab: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>',
   };
 
   const timeInput = form.elements.namedItem("time");
@@ -90,27 +91,56 @@
     return local.toISOString().slice(0, 10);
   }
 
-  function cardMarkup(show) {
+  function scheduleRowMarkup(show) {
     const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
     const isOnAir = show.slug === onAirSlug;
-    const badge = isOnAir
-      ? `<span class="admin-card__badge"><span class="live-dot" aria-hidden="true"></span>On air</span>`
-      : "";
     return `
-      <article class="admin-card" data-slug="${show.slug}">
-        <div class="admin-card__thumb${show.heroImage ? "" : " admin-card__thumb--empty"}" ${thumb}>${badge}</div>
-        <div class="admin-card__meta">
-          <div class="admin-card__title">${show.title}</div>
-          <div class="admin-card__sub">${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}</div>
-        </div>
-        <div class="admin-card__actions">
-          <a class="icon-btn" href="/shows/${show.slug}" target="_blank" rel="noopener" aria-label="View show page">${ICONS.view}<span class="visually-hidden">View</span></a>
-          <button type="button" class="icon-btn" data-action="edit" aria-label="Edit show">${ICONS.edit}<span class="visually-hidden">Edit</span></button>
-          <button type="button" class="icon-btn icon-btn--live" data-action="toggle-live" aria-pressed="${isOnAir}" aria-label="${isOnAir ? "Clear on-air status" : "Mark this show on air"}">${ICONS.live}<span class="visually-hidden">${isOnAir ? "On air" : "Go live"}</span></button>
-          <button type="button" class="icon-btn icon-btn--danger" data-action="delete" aria-label="Delete show">${ICONS.delete}<span class="visually-hidden">Delete</span></button>
-        </div>
-      </article>
+      <tr data-slug="${show.slug}">
+        <td><div class="admin-thumb admin-schedule__thumb${show.heroImage ? "" : " admin-thumb--empty"}" ${thumb}></div></td>
+        <td class="admin-schedule__title">${show.title}</td>
+        <td>${show.guestName || ""}</td>
+        <td>${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}</td>
+        <td class="admin-schedule__status">${isOnAir ? "● On air" : ""}</td>
+        <td>
+          <div class="admin-schedule__actions">
+            <a class="icon-btn" href="/shows/${show.slug}" target="_blank" rel="noopener" aria-label="View show page">${ICONS.view}</a>
+            <button type="button" class="icon-btn" data-action="edit" aria-label="Edit show">${ICONS.edit}</button>
+            <button type="button" class="icon-btn icon-btn--live" data-action="toggle-live" aria-pressed="${isOnAir}" aria-label="${isOnAir ? "Clear on-air status" : "Mark this show on air"}">${ICONS.live}</button>
+            <button type="button" class="icon-btn icon-btn--danger" data-action="delete" aria-label="Delete show">${ICONS.delete}</button>
+          </div>
+        </td>
+      </tr>
     `;
+  }
+
+  function compactRowMarkup(show) {
+    const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
+    const isOnAir = show.slug === onAirSlug;
+    const meta = `${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}`;
+    return `
+      <div class="admin-compact-row" data-slug="${show.slug}">
+        <div class="admin-thumb admin-compact-row__thumb${show.heroImage ? "" : " admin-thumb--empty"}" ${thumb}></div>
+        <div class="admin-compact-row__body">
+          <div class="admin-compact-row__title">${show.title}</div>
+          <div class="admin-compact-row__meta${isOnAir ? " admin-compact-row__meta--live" : ""}">${isOnAir ? "● On air · " : ""}${meta}</div>
+        </div>
+        <button type="button" class="kebab-btn" data-action="menu-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Show actions for ${show.title}">${ICONS.kebab}</button>
+        <div class="kebab-menu" hidden>
+          <a class="kebab-menu__item" href="/shows/${show.slug}" target="_blank" rel="noopener">View</a>
+          <button type="button" class="kebab-menu__item" data-action="edit">Edit</button>
+          <button type="button" class="kebab-menu__item kebab-menu__item--live" data-action="toggle-live" aria-pressed="${isOnAir}">${isOnAir ? "Clear on air" : "Mark on air"}</button>
+          <button type="button" class="kebab-menu__item kebab-menu__item--danger" data-action="delete">Delete</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function closeAllMenus() {
+    document.querySelectorAll(".kebab-menu").forEach((menu) => {
+      menu.hidden = true;
+      const btn = menu.previousElementSibling;
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    });
   }
 
   function updateBanner() {
@@ -146,7 +176,13 @@
     Object.keys(buckets).forEach((key) => {
       const items = buckets[key];
       groups[key].hidden = items.length === 0;
-      lists[key].innerHTML = items.map(cardMarkup).join("");
+      lists[key].innerHTML = `
+        <table class="admin-schedule">
+          <thead><tr><th></th><th>Show</th><th>Guest</th><th>When</th><th>Status</th><th></th></tr></thead>
+          <tbody>${items.map(scheduleRowMarkup).join("")}</tbody>
+        </table>
+        <div class="admin-compact-list">${items.map(compactRowMarkup).join("")}</div>
+      `;
       if (groupCounts[key]) groupCounts[key].textContent = items.length;
     });
 
@@ -283,6 +319,15 @@
       const row = button.closest("[data-slug]");
       const slug = row.dataset.slug;
 
+      if (button.dataset.action === "menu-toggle") {
+        const menu = button.nextElementSibling;
+        const willOpen = menu.hidden;
+        closeAllMenus();
+        menu.hidden = !willOpen;
+        button.setAttribute("aria-expanded", String(willOpen));
+        return;
+      }
+
       if (button.dataset.action === "edit") {
         const res = await fetch(`/api/shows/${encodeURIComponent(slug)}`);
         if (res.ok) fillForm(await res.json());
@@ -301,8 +346,9 @@
           if (!res.ok) throw new Error(`live ${res.status}`);
           const { onAir } = await res.json();
           onAirSlug = onAir;
+          const show = cachedShows.find((s) => s.slug === slug);
           renderLists();
-          setStatus(goingLive ? `Marked "${row.querySelector(".admin-card__title").textContent}" on air.` : "Cleared on-air status.");
+          setStatus(goingLive ? `Marked "${show ? show.title : slug}" on air.` : "Cleared on-air status.");
         } catch (err) {
           setStatus("Couldn't update on-air status — try again.", "error");
         } finally {
@@ -324,6 +370,14 @@
         }
       }
     });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".admin-compact-row")) closeAllMenus();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAllMenus();
   });
 
   loadList().catch(() => setStatus("Couldn't load shows.", "error"));
