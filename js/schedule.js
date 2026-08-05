@@ -18,10 +18,16 @@
     };
   }
 
-  function rowMarkup(show, isLive) {
+  function formatDateShort(dateStr) {
+    const date = new Date(dateStr + "T00:00:00");
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+
+  function rowMarkup(show, isLive, dateLabel) {
+    const time = dateLabel ? `${dateLabel} · ${show.time || "TBA"}` : show.time || "TBA";
     return `
       <a class="schedule__row${isLive ? " schedule__row--live" : ""}" href="/shows/${show.slug}">
-        <span class="schedule__time">${show.time || "TBA"}</span>
+        <span class="schedule__time">${time}</span>
         <span class="schedule__show">
           <span class="schedule__show-title">${show.title}</span>
           <span class="schedule__artist">${show.guestName || ""}</span>
@@ -44,17 +50,34 @@
         .map((show) => ({ show, range: parseTimeRange(show.time) }))
         .sort((a, b) => (a.range?.startMin ?? 0) - (b.range?.startMin ?? 0));
 
-      if (!todaysShows.length) {
-        container.innerHTML = `<p class="schedule__empty">No shows scheduled today.</p>`;
+      const upcomingShows = shows
+        .filter((show) => show.date > today)
+        .sort((a, b) => {
+          if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+          return (parseTimeRange(a.time)?.startMin ?? 0) - (parseTimeRange(b.time)?.startMin ?? 0);
+        })
+        .slice(0, 5);
+
+      if (!todaysShows.length && !upcomingShows.length) {
+        container.innerHTML = `<p class="schedule__empty">No shows scheduled.</p>`;
         return;
       }
 
-      container.innerHTML = todaysShows
-        .map(({ show, range }) => {
-          const isLive = range ? nowMin >= range.startMin && nowMin < range.endMin : false;
-          return rowMarkup(show, isLive);
-        })
-        .join("");
+      let html = todaysShows.length
+        ? todaysShows
+            .map(({ show, range }) => {
+              const isLive = range ? nowMin >= range.startMin && nowMin < range.endMin : false;
+              return rowMarkup(show, isLive);
+            })
+            .join("")
+        : `<p class="schedule__empty">No shows scheduled today.</p>`;
+
+      if (upcomingShows.length) {
+        html += `<div class="schedule__group">Upcoming</div>`;
+        html += upcomingShows.map((show) => rowMarkup(show, false, formatDateShort(show.date))).join("");
+      }
+
+      container.innerHTML = html;
     } catch (err) {
       container.innerHTML = `<p class="schedule__empty">Couldn't load today's schedule.</p>`;
     } finally {
