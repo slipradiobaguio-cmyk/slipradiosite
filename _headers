@@ -4,3 +4,9 @@
 
 /admin/*
   X-Robots-Tag: noindex
+
+/js/*
+  Cache-Control: no-cache
+
+/css/*
+  Cache-Control: no-cache
