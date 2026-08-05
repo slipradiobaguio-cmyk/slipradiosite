@@ -42,31 +42,38 @@
     if (!grid.classList.contains("shows-grid--home")) return;
     const progressFill = grid.parentElement.querySelector(".hero-carousel-progress__fill");
     const mq = window.matchMedia("(max-width: 767.98px)");
+    const interval = 3000;
     let timer = null;
+    let cards = [];
+    let index = 0;
 
-    function advance() {
-      const cards = grid.querySelectorAll(".show-card");
-      if (cards.length < 2) return;
-      const gap = parseFloat(getComputedStyle(grid).columnGap) || 0;
-      const step = cards[0].getBoundingClientRect().width + gap;
-      const atEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
-      grid.scrollTo({ left: atEnd ? 0 : grid.scrollLeft + step, behavior: "smooth" });
+    function applyActive() {
+      cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
     }
 
-    function updateProgress() {
+    function resetProgress() {
       if (!progressFill) return;
-      if (!mq.matches) {
-        progressFill.style.transform = "scaleX(1)";
-        return;
-      }
-      const scrollable = grid.scrollWidth - grid.clientWidth;
-      const ratio = scrollable > 0 ? grid.scrollLeft / scrollable : 1;
-      progressFill.style.transform = `scaleX(${Math.min(1, Math.max(0, ratio))})`;
+      progressFill.style.transition = "none";
+      progressFill.style.transform = "scaleX(0)";
+      void progressFill.offsetWidth;
+      progressFill.style.transition = `transform ${interval}ms linear`;
+      progressFill.style.transform = "scaleX(1)";
+    }
+
+    function goTo(i) {
+      if (!cards.length) return;
+      index = ((i % cards.length) + cards.length) % cards.length;
+      applyActive();
+      resetProgress();
+    }
+
+    function advance() {
+      goTo(index + 1);
     }
 
     function start() {
       stop();
-      timer = setInterval(advance, 3000);
+      if (cards.length > 1) timer = setInterval(advance, interval);
     }
 
     function stop() {
@@ -75,23 +82,27 @@
     }
 
     function sync() {
-      if (mq.matches) start();
-      else stop();
-      updateProgress();
+      cards = Array.from(grid.querySelectorAll(".show-card"));
+      if (mq.matches) {
+        index = 0;
+        applyActive();
+        start();
+        resetProgress();
+      } else {
+        stop();
+        cards.forEach((card) => card.classList.remove("is-active"));
+        if (progressFill) {
+          progressFill.style.transition = "none";
+          progressFill.style.transform = "scaleX(1)";
+        }
+      }
     }
 
-    const onTouchEnd = () => sync();
-    grid.addEventListener("scroll", updateProgress, { passive: true });
-    grid.addEventListener("touchstart", stop, { passive: true });
-    grid.addEventListener("touchend", onTouchEnd, { passive: true });
     mq.addEventListener("change", sync);
     sync();
 
     window.__srHeroCarouselCleanup = () => {
       stop();
-      grid.removeEventListener("scroll", updateProgress);
-      grid.removeEventListener("touchstart", stop);
-      grid.removeEventListener("touchend", onTouchEnd);
       mq.removeEventListener("change", sync);
     };
   }
