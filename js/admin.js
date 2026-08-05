@@ -32,6 +32,7 @@
   const chatForm = document.querySelector("[data-admin-chat-form]");
   const chatInput = document.querySelector("[data-admin-chat-input]");
   let chatPollTimer = null;
+  let cachedChatMessages = [];
 
   const banner = document.querySelector("[data-onair-banner]");
   const bannerLabel = document.querySelector("[data-onair-banner-label]");
@@ -42,6 +43,7 @@
     live: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8 2v12M4.5 5a5 5 0 000 6M11.5 5a5 5 0 010 6M2.3 3a8 8 0 000 10M13.7 3a8 8 0 010 10"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>',
     delete: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M6 4V2.5h4V4M4 4l.6 9a1 1 0 001 .9h4.8a1 1 0 001-.9L12 4"/></svg>',
     kebab: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>',
+    ban: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M3.8 3.8l8.4 8.4"/></svg>',
   };
 
   const timeInput = form.elements.namedItem("time");
@@ -436,14 +438,24 @@
       return `<div class="admin-chat__row admin-chat__row--system">${escapeHtml(msg.body)} — ${formatChatTime(msg.createdAt)}</div>`;
     }
 
-    const actions = msg.isDj
-      ? ""
-      : `
+    let actions = "";
+    if (msg.isDj) {
+      if (!msg.deleted) {
+        actions = `
+          <div class="admin-chat__actions">
+            <button type="button" data-action="chat-edit" aria-label="Edit message">${ICONS.edit}</button>
+            <button type="button" data-action="chat-delete" aria-label="Delete message">${ICONS.delete}</button>
+          </div>
+        `;
+      }
+    } else {
+      actions = `
         <div class="admin-chat__actions">
-          ${msg.deleted ? "" : '<button type="button" data-action="chat-delete">Delete</button>'}
-          <button type="button" data-action="chat-ban">Ban</button>
+          ${msg.deleted ? "" : `<button type="button" data-action="chat-delete" aria-label="Delete message">${ICONS.delete}</button>`}
+          <button type="button" data-action="chat-ban" aria-label="Ban sender">${ICONS.ban}</button>
         </div>
       `;
+    }
 
     return `
       <div class="admin-chat__row${msg.deleted ? " admin-chat__row--deleted" : ""}" data-id="${msg.id}" data-client-id="${escapeHtml(msg.clientId)}" data-ip-hash="${escapeHtml(msg.ipHash || "")}">
@@ -464,6 +476,7 @@
     const res = await fetch("/api/admin/chat", { cache: "no-store" });
     if (!res.ok) throw new Error(`chat ${res.status}`);
     const { messages } = await res.json();
+    cachedChatMessages = messages;
     const ordered = [...messages].reverse();
     const wasAtBottom = chatFeed.scrollHeight - chatFeed.scrollTop - chatFeed.clientHeight < 24;
     chatFeed.innerHTML = ordered.length
@@ -501,6 +514,26 @@
     const id = row.dataset.id;
     const clientId = row.dataset.clientId;
     const ipHash = row.dataset.ipHash;
+
+    if (button.dataset.action === "chat-edit") {
+      const current = cachedChatMessages.find((m) => m.id === Number(id));
+      const next = prompt("Edit message", current ? current.body : "");
+      if (next === null) return;
+      const trimmed = next.trim();
+      if (!trimmed) return;
+      try {
+        const res = await fetch(`/api/admin/chat/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: trimmed }),
+        });
+        if (!res.ok) throw new Error(`edit ${res.status}`);
+        await loadChat();
+      } catch (err) {
+        setStatus("Couldn't edit message — try again.", "error");
+      }
+      return;
+    }
 
     if (button.dataset.action === "chat-delete") {
       if (!confirm("Delete this message?")) return;
