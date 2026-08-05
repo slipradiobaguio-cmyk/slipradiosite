@@ -20,16 +20,29 @@
     </a>
     <nav class="site-nav" aria-label="Primary">
       <ul class="site-nav__list">
-        <li><a href="/about" data-nav-link>About</a></li>
-        <li><a href="/shows" data-nav-link>Shows</a></li>
-        <li><a href="/support-us" data-nav-link>Support</a></li>
+        <li class="site-nav__item"><a href="/about" class="site-nav__link" data-nav-link>About</a></li>
+        <li class="site-nav__item"><a href="/shows" class="site-nav__link" data-nav-link>Shows</a></li>
+        <li class="site-nav__item"><a href="/support-us" class="site-nav__link" data-nav-link>Support</a></li>
         <li class="live-indicator" data-state="loading">
           <span class="live-dot" aria-hidden="true"></span>
           <span class="live-indicator__label">Connecting</span>
         </li>
+        <li class="site-nav__burger-item">
+          <button type="button" class="nav-burger" data-nav-burger aria-expanded="false" aria-controls="nav-drawer" aria-label="Menu">
+            <span></span><span></span><span></span>
+          </button>
+        </li>
       </ul>
     </nav>
   </header>
+
+  <div class="nav-drawer" id="nav-drawer" data-nav-drawer data-open="false">
+    <div class="nav-drawer__row">
+      <a href="/about" class="site-nav__link" data-nav-link>About</a>
+      <a href="/shows" class="site-nav__link" data-nav-link>Shows</a>
+      <a href="/support-us" class="site-nav__link" data-nav-link>Support</a>
+    </div>
+  </div>
 
   <main>
     <!--

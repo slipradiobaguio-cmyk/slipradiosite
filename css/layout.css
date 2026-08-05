@@ -41,10 +41,11 @@ body.theme-dark .site-logo--text {
 
 .site-nav__list {
   display: flex;
-  gap: var(--space-md);
+  gap: 2rem;
   align-items: center;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -53,22 +54,118 @@ body.theme-dark .site-logo--text {
   text-underline-offset: 3px;
 }
 
-/* mobile header — nav sits beside the logo instead of behind a menu toggle;
-   sized down and tightened so the logo stays the visual anchor */
+.site-nav__burger-item {
+  display: none;
+}
+
+.nav-burger {
+  display: none;
+  position: relative;
+  width: 34px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.nav-burger span {
+  position: absolute;
+  left: 8px;
+  width: 18px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-burger span:nth-child(1) { top: 9px; }
+.nav-burger span:nth-child(2) { top: 14px; }
+.nav-burger span:nth-child(3) { top: 19px; }
+
+.nav-burger[aria-expanded="true"] span:nth-child(1) {
+  top: 14px;
+  transform: rotate(45deg);
+}
+
+.nav-burger[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-burger[aria-expanded="true"] span:nth-child(3) {
+  top: 14px;
+  transform: rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-burger span {
+    transition: none;
+  }
+}
+
+.nav-drawer {
+  display: none;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-drawer[data-open="true"] {
+  max-height: 80px;
+}
+
+.nav-drawer__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.9rem var(--page-gutter);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+}
+
+body.theme-dark .nav-drawer__row {
+  border-top-color: color-mix(in srgb, var(--color-border-inverse) 55%, transparent);
+}
+
+.nav-drawer__row a[aria-current="page"] {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* mobile header — links collapse into a burger-triggered drawer so the
+   logo stays the visual anchor instead of competing with squeezed text */
 @media (max-width: 767.98px) {
   .site-logo__img {
     height: 28px;
   }
 
+  .site-nav__list .site-nav__item {
+    display: none;
+  }
+
   .site-nav__list {
-    gap: var(--space-xs);
-    font-size: 0.7rem;
+    gap: 0.9rem;
+  }
+
+  .site-nav__burger-item {
+    display: flex;
+  }
+
+  .nav-burger {
+    display: inline-flex;
   }
 
   /* extra specificity needed to beat components.css's unconditional .live-indicator rule */
   .site-nav__list .live-indicator {
     font-size: 0.7rem;
     margin-left: 0.2rem;
+  }
+
+  .nav-drawer {
+    display: block;
   }
 }
 

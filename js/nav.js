@@ -7,6 +7,22 @@
     }
   });
 
+  const burger = document.querySelector("[data-nav-burger]");
+  const drawer = document.querySelector("[data-nav-drawer]");
+  if (burger && drawer) {
+    burger.setAttribute("aria-expanded", "false");
+    drawer.setAttribute("data-open", "false");
+
+    if (!burger.dataset.bound) {
+      burger.dataset.bound = "1";
+      burger.addEventListener("click", () => {
+        const open = burger.getAttribute("aria-expanded") === "true";
+        burger.setAttribute("aria-expanded", String(!open));
+        drawer.setAttribute("data-open", String(!open));
+      });
+    }
+  }
+
   if (window.__srClockInterval) clearInterval(window.__srClockInterval);
 
   const clock = document.querySelector("[data-clock]");
