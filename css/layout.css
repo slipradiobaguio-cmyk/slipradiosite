@@ -217,6 +217,27 @@ body.theme-dark .show-detail__follow:hover {
   display: none;
 }
 
+/* mobile — drop the boxed button for a lighter, underlined link; still
+   sized for a comfortable tap target */
+@media (max-width: 767.98px) {
+  .show-detail__follow {
+    border: none;
+    border-bottom: 1px solid var(--color-text);
+    padding: 0.6rem 0.1rem;
+  }
+
+  .show-detail__follow::after {
+    content: none;
+  }
+
+  .show-detail__follow:hover,
+  .show-detail__follow:active {
+    background: none;
+    color: var(--color-text);
+    opacity: 0.6;
+  }
+}
+
 /* desktop — photo capped and set beside the details instead of running
    full-bleed above them; content centered against the photo so a short
    description doesn't leave the row looking lopsided */
