@@ -38,6 +38,7 @@
     <div class="admin-tabs" role="tablist">
       <button type="button" class="admin-tabs__btn" data-tab-button="list" role="tab" aria-selected="true">List</button>
       <button type="button" class="admin-tabs__btn" data-tab-button="form" role="tab" aria-selected="false">Add show</button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="chat" role="tab" aria-selected="false">Chat</button>
     </div>
 
     <p class="admin-status" data-admin-status></p>
@@ -122,6 +123,16 @@
           <button type="button" class="btn" data-action="cancel">Cancel</button>
         </div>
       </form>
+    </section>
+
+    <section data-tab-panel="chat" hidden>
+      <div class="admin-chat">
+        <div class="admin-chat__feed" data-admin-chat-feed></div>
+        <form class="admin-chat__composer" data-admin-chat-form>
+          <input type="text" data-admin-chat-input placeholder="Message the room as slip radio…" maxlength="240" autocomplete="off">
+          <button type="submit" class="btn btn--primary">Send</button>
+        </form>
+      </div>
     </section>
   </main>
 

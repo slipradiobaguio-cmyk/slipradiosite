@@ -1,6 +1,5 @@
 import { jsonResponse, sanitizeText } from "../../../_utils.js";
 
-const NAME_MAX = 24;
 const MESSAGE_MAX = 240;
 
 // includes ip_hash/deleted_at unlike the public feed — the admin view needs
@@ -25,11 +24,12 @@ export async function onRequestGet({ env }) {
   });
 }
 
-// posts into the same room tagged as the DJ — admin auth stands in for
-// identity here, no separate DJ login
+// posts into the same room as a fixed station identity — admin auth stands
+// in for a login here, so the name is always "slip radio", never typed
+const STATION_NAME = "slip radio";
+
 export async function onRequestPost({ request, env }) {
   const payload = await request.json();
-  const name = sanitizeText(payload.name, NAME_MAX) || "DJ";
   const body = sanitizeText(payload.message, MESSAGE_MAX);
   if (!body) return jsonResponse({ error: "message_required" }, 400);
 
@@ -37,8 +37,8 @@ export async function onRequestPost({ request, env }) {
   const result = await env.CHAT.prepare(
     "INSERT INTO messages (client_id, name, body, is_dj, ip_hash, created_at) VALUES ('dj', ?1, ?2, 1, NULL, ?3)"
   )
-    .bind(name, body, createdAt)
+    .bind(STATION_NAME, body, createdAt)
     .run();
 
-  return jsonResponse({ id: result.meta.last_row_id, name, body, isDj: true, createdAt }, 201);
+  return jsonResponse({ id: result.meta.last_row_id, name: STATION_NAME, body, isDj: true, createdAt }, 201);
 }

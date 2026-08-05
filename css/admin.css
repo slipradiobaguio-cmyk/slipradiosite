@@ -375,3 +375,113 @@
 .admin-status[data-tone="error"] {
   color: var(--color-live);
 }
+
+/* moderation view for the station chat — flat and fully visible on
+   purpose, unlike the public widget's collapsed day groups */
+
+.admin-chat {
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  height: 60vh;
+  max-height: 560px;
+}
+
+.admin-chat__feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-chat__row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: 0.85rem;
+}
+
+.admin-chat__row--system {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-muted);
+}
+
+.admin-chat__row--deleted {
+  opacity: 0.5;
+}
+
+.admin-chat__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-chat__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.admin-chat__name {
+  font-weight: 600;
+}
+
+.admin-chat__time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-muted);
+}
+
+.admin-chat__flag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-live);
+}
+
+.admin-chat__text {
+  margin-top: 0.15rem;
+  word-wrap: break-word;
+}
+
+.admin-chat__actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.admin-chat__actions button {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+}
+
+.admin-chat__actions button:hover {
+  border-color: var(--color-live);
+  color: var(--color-live);
+}
+
+.admin-chat__composer {
+  border-top: 1px solid var(--color-border);
+  padding: 0.6rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.admin-chat__composer input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  padding: 0.55rem 0.6rem;
+  background: var(--color-bg);
+}

@@ -28,6 +28,11 @@
   let onAirSlug = null;
   let cachedShows = [];
 
+  const chatFeed = document.querySelector("[data-admin-chat-feed]");
+  const chatForm = document.querySelector("[data-admin-chat-form]");
+  const chatInput = document.querySelector("[data-admin-chat-input]");
+  let chatPollTimer = null;
+
   const banner = document.querySelector("[data-onair-banner]");
   const bannerLabel = document.querySelector("[data-onair-banner-label]");
 
@@ -62,6 +67,14 @@
     tabButtons.forEach((button) => {
       button.setAttribute("aria-selected", String(button.dataset.tabButton === name));
     });
+
+    if (name === "chat") {
+      loadChat().catch(() => setStatus("Couldn't load chat.", "error"));
+      if (!chatPollTimer) chatPollTimer = setInterval(() => loadChat().catch(() => {}), 4000);
+    } else if (chatPollTimer) {
+      clearInterval(chatPollTimer);
+      chatPollTimer = null;
+    }
   }
 
   tabButtons.forEach((button) => {
@@ -408,6 +421,115 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllMenus();
+  });
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  }
+
+  function formatChatTime(ts) {
+    return new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  function chatRowMarkup(msg) {
+    if (msg.isSystem) {
+      return `<div class="admin-chat__row admin-chat__row--system">${escapeHtml(msg.body)} — ${formatChatTime(msg.createdAt)}</div>`;
+    }
+
+    const actions = msg.isDj
+      ? ""
+      : `
+        <div class="admin-chat__actions">
+          ${msg.deleted ? "" : '<button type="button" data-action="chat-delete">Delete</button>'}
+          <button type="button" data-action="chat-ban">Ban</button>
+        </div>
+      `;
+
+    return `
+      <div class="admin-chat__row${msg.deleted ? " admin-chat__row--deleted" : ""}" data-id="${msg.id}" data-client-id="${escapeHtml(msg.clientId)}" data-ip-hash="${escapeHtml(msg.ipHash || "")}">
+        <div class="admin-chat__body">
+          <div class="admin-chat__meta">
+            <span class="admin-chat__name">${escapeHtml(msg.name)}</span>
+            <span class="admin-chat__time">${formatChatTime(msg.createdAt)}</span>
+            ${msg.deleted ? '<span class="admin-chat__flag">Deleted</span>' : ""}
+          </div>
+          <div class="admin-chat__text">${escapeHtml(msg.body)}</div>
+        </div>
+        ${actions}
+      </div>
+    `;
+  }
+
+  async function loadChat() {
+    const res = await fetch("/api/admin/chat", { cache: "no-store" });
+    if (!res.ok) throw new Error(`chat ${res.status}`);
+    const { messages } = await res.json();
+    const ordered = [...messages].reverse();
+    const wasAtBottom = chatFeed.scrollHeight - chatFeed.scrollTop - chatFeed.clientHeight < 24;
+    chatFeed.innerHTML = ordered.length
+      ? ordered.map(chatRowMarkup).join("")
+      : '<p class="admin-status">No messages yet.</p>';
+    if (wasAtBottom) chatFeed.scrollTop = chatFeed.scrollHeight;
+  }
+
+  chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+    chatInput.disabled = true;
+    try {
+      const res = await fetch("/api/admin/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      if (!res.ok) throw new Error(`chat ${res.status}`);
+      chatInput.value = "";
+      await loadChat();
+    } catch (err) {
+      setStatus("Couldn't send — try again.", "error");
+    } finally {
+      chatInput.disabled = false;
+      chatInput.focus();
+    }
+  });
+
+  chatFeed.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-action]");
+    if (!button) return;
+    const row = button.closest("[data-id]");
+    const id = row.dataset.id;
+    const clientId = row.dataset.clientId;
+    const ipHash = row.dataset.ipHash;
+
+    if (button.dataset.action === "chat-delete") {
+      if (!confirm("Delete this message?")) return;
+      try {
+        const res = await fetch(`/api/admin/chat/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`delete ${res.status}`);
+        await loadChat();
+      } catch (err) {
+        setStatus("Couldn't delete message — try again.", "error");
+      }
+      return;
+    }
+
+    if (button.dataset.action === "chat-ban") {
+      const minutesStr = prompt("Ban for how many minutes?", "60");
+      if (!minutesStr) return;
+      const minutes = Number(minutesStr) || 60;
+      try {
+        const res = await fetch("/api/admin/chat/ban", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId, ipHash: ipHash || undefined, minutes }),
+        });
+        if (!res.ok) throw new Error(`ban ${res.status}`);
+        setStatus(`Banned for ${minutes} min.`);
+      } catch (err) {
+        setStatus("Couldn't ban — try again.", "error");
+      }
+    }
   });
 
   loadList().catch(() => setStatus("Couldn't load shows.", "error"));
