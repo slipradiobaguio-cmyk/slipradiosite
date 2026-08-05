@@ -8,6 +8,7 @@
   const MESSAGE_MAX = 240;
   const POLL_INTERVAL_MS = 4000;
   const RESERVED_NAMES = new Set(["admin", "slip radio"]);
+  const DAY_REVEAL_THRESHOLD = 120;
 
   const fab = widget.querySelector(".chat-fab");
   const badge = widget.querySelector("[data-chat-badge]");
@@ -69,6 +70,18 @@
 
   function isScrolledToBottom() {
     return feed.scrollHeight - feed.scrollTop - feed.clientHeight < 24;
+  }
+
+  // day headers stay out of sight until the reader actually scrolls back
+  // into history — if there's nothing to scroll (a short log), there's
+  // nothing to hide behind, so they just show as normal
+  function updateDayVisibility() {
+    const canScroll = feed.scrollHeight > feed.clientHeight + 4;
+    const scrolledUp = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
+    const revealed = !canScroll || scrolledUp > DAY_REVEAL_THRESHOLD;
+    feed.querySelectorAll(".chat-day").forEach((day) => {
+      day.classList.toggle("chat-day--hidden", !revealed);
+    });
   }
 
   const AVATAR_TINTS = 5;
@@ -172,6 +185,7 @@
 
   function scrollToBottom() {
     feed.scrollTop = feed.scrollHeight;
+    updateDayVisibility();
   }
 
   async function loadInitial() {
@@ -203,6 +217,7 @@
 
       if (widget.dataset.open === "true") {
         if (wasAtBottom) scrollToBottom();
+        else updateDayVisibility();
       } else {
         setUnread(unread + data.messages.length);
       }
@@ -289,6 +304,7 @@
     const group = head.closest(".chat-day");
     group.dataset.open = group.dataset.open === "true" ? "false" : "true";
   });
+  feed.addEventListener("scroll", updateDayVisibility);
   input.addEventListener("input", updateActionUI);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
