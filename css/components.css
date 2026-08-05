@@ -158,33 +158,24 @@
   padding-block: var(--space-sm);
 }
 
-/* mobile — genres forced onto its own full-width line instead of squeezing
-   into a third column; that's what was pushing the show title into a
-   narrow wrapped stack and overlapping the next column */
+/* mobile — genres dropped entirely (time, show, host is enough for the
+   compact view) so the row stays a clean two-column line */
 @media (max-width: 767.98px) {
   .schedule__row {
     grid-template-columns: auto 1fr;
-    grid-template-areas:
-      "time show"
-      "genres genres";
-    row-gap: 0.2rem;
   }
 
   .schedule__time {
-    grid-area: time;
     width: auto;
   }
 
   .schedule__show {
-    grid-area: show;
     flex-direction: column;
     gap: 0;
   }
 
   .schedule__genres {
-    grid-area: genres;
-    text-align: left;
-    white-space: normal;
+    display: none;
   }
 }
 

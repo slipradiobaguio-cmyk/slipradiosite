@@ -23,8 +23,32 @@
     return date.toLocaleDateString([], { month: "short", day: "numeric" });
   }
 
+  function to12Hour(hStr, mStr) {
+    const h = Number(hStr);
+    const m = Number(mStr);
+    const period = h < 12 ? "AM" : "PM";
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return { h12, m, period };
+  }
+
+  function formatTimeRange(time) {
+    if (!time) return "TBA";
+    const match = time.match(/(\d{1,2}):(\d{2})\s*[-–—]\s*(\d{1,2}):(\d{2})/);
+    if (!match) return time;
+    const [, sh, sm, eh, em] = match;
+    const start = to12Hour(sh, sm);
+    const end = to12Hour(eh, em);
+    const showMinutes = start.m !== 0 || end.m !== 0;
+    const startStr = showMinutes ? `${start.h12}:${String(start.m).padStart(2, "0")}` : `${start.h12}`;
+    const endStr = showMinutes ? `${end.h12}:${String(end.m).padStart(2, "0")}` : `${end.h12}`;
+    return start.period === end.period
+      ? `${startStr}–${endStr} ${end.period}`
+      : `${startStr} ${start.period}–${endStr} ${end.period}`;
+  }
+
   function rowMarkup(show, isLive, dateLabel) {
-    const time = dateLabel ? `${dateLabel} · ${show.time || "TBA"}` : show.time || "TBA";
+    const time = dateLabel ? `${dateLabel} · ${formatTimeRange(show.time)}` : formatTimeRange(show.time);
     return `
       <a class="schedule__row${isLive ? " schedule__row--live" : ""}" href="/shows/${show.slug}">
         <span class="schedule__time">${time}</span>
