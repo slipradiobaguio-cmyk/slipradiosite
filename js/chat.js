@@ -16,6 +16,8 @@
   const feed = widget.querySelector("[data-chat-feed]");
   const input = widget.querySelector("[data-chat-input]");
   const actionBtn = widget.querySelector("[data-chat-action]");
+  const reminder = widget.querySelector(".chat-reminder");
+  const REMINDER_DURATION_MS = 10000;
 
   function getClientId() {
     let id = localStorage.getItem(CLIENT_KEY);
@@ -315,6 +317,7 @@
 
   updateActionUI();
   setUnread(0);
+  window.setTimeout(() => reminder.classList.add("chat-reminder--hidden"), REMINDER_DURATION_MS);
   loadInitial().then(() => {
     setInterval(poll, POLL_INTERVAL_MS);
   });
