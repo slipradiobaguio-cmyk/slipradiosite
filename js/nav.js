@@ -27,13 +27,14 @@
 
   const clock = document.querySelector("[data-clock]");
   if (clock) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const update = () => {
-      clock.textContent = new Date().toLocaleString(undefined, {
-        hour: "2-digit",
-        minute: "2-digit",
-        month: "short",
-        day: "numeric",
-      });
+      const now = new Date();
+      const hour24 = now.getHours();
+      const hour = hour24 % 12 || 12;
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const ampm = hour24 < 12 ? "AM" : "PM";
+      clock.textContent = `${months[now.getMonth()]} ${now.getDate()} · ${hour}:${minute} ${ampm}`;
     };
     update();
     window.__srClockInterval = setInterval(update, 30000);

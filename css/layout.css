@@ -112,13 +112,13 @@ body.theme-dark .site-logo--text {
 }
 
 .nav-drawer[data-open="true"] {
-  max-height: 80px;
+  max-height: 100px;
 }
 
 .nav-drawer__row {
   display: flex;
   justify-content: space-between;
-  padding: 0.9rem var(--page-gutter);
+  padding: 1.4rem var(--page-gutter);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.05em;
