@@ -7,6 +7,7 @@
   const NAME_MAX = 24;
   const MESSAGE_MAX = 240;
   const POLL_INTERVAL_MS = 4000;
+  const RESERVED_NAMES = new Set(["admin", "slip radio"]);
 
   const fab = widget.querySelector(".chat-fab");
   const badge = widget.querySelector("[data-chat-badge]");
@@ -80,16 +81,57 @@
     return Math.abs(hash) % AVATAR_TINTS;
   }
 
-  function renderMessage(msg, mine) {
-    clearFeedEmptyState();
+  // the log is split into per-day groups so a long history doesn't read as
+  // one endless wall — only the most recent day renders flat with no header,
+  // matching today's chat exactly; anything older sits behind a collapsed
+  // "day rail" the reader only meets by scrolling back into it
+  let currentDayKey = null;
+  let currentContainer = null;
 
+  function dayKeyOf(createdAt) {
+    const d = new Date(createdAt);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }
+
+  function dayLabelOf(createdAt) {
+    return new Date(createdAt).toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+
+  function freezeCurrentIntoDayGroup() {
+    const dayGroup = document.createElement("div");
+    dayGroup.className = "chat-day";
+    dayGroup.dataset.open = "false";
+    dayGroup.innerHTML = `
+      <button type="button" class="chat-day__head">
+        <span class="chat-day__date">${currentContainer.dataset.label}</span>
+        <span class="chat-day__chevron" aria-hidden="true">▾</span>
+      </button>
+    `;
+    currentContainer.className = "chat-day__rows";
+    dayGroup.appendChild(currentContainer);
+    feed.insertBefore(dayGroup, null);
+  }
+
+  function ensureCurrentContainer(msg) {
+    const dayKey = dayKeyOf(msg.createdAt);
+    if (currentContainer && currentDayKey === dayKey) return currentContainer;
+
+    if (currentContainer) freezeCurrentIntoDayGroup();
+
+    currentContainer = document.createElement("div");
+    currentContainer.className = "chat-feed__current";
+    currentContainer.dataset.label = dayLabelOf(msg.createdAt);
+    feed.appendChild(currentContainer);
+    currentDayKey = dayKey;
+    return currentContainer;
+  }
+
+  function buildMessageNode(msg, mine) {
     if (msg.isSystem) {
       const systemRow = document.createElement("div");
       systemRow.className = "chat-msg--system";
       systemRow.textContent = msg.body;
-      feed.appendChild(systemRow);
-      if (msg.id > lastId) lastId = msg.id;
-      return;
+      return systemRow;
     }
 
     const row = document.createElement("div");
@@ -118,8 +160,13 @@
 
     body.append(meta, textEl);
     row.append(avatar, body);
-    feed.appendChild(row);
+    return row;
+  }
 
+  function renderMessage(msg, mine) {
+    clearFeedEmptyState();
+    const container = ensureCurrentContainer(msg);
+    container.appendChild(buildMessageNode(msg, mine));
     if (msg.id > lastId) lastId = msg.id;
   }
 
@@ -188,13 +235,28 @@
     }
   }
 
+  function showNameError(message) {
+    input.value = "";
+    input.classList.add("chat-action-row__input--error");
+    input.placeholder = message;
+    window.setTimeout(() => {
+      input.classList.remove("chat-action-row__input--error");
+      updateActionUI();
+    }, 2200);
+  }
+
   function handleAction() {
     if (sending) return;
     const value = input.value.trim();
     if (!value) return;
 
     if (!myName) {
-      myName = value.slice(0, NAME_MAX);
+      const candidate = value.slice(0, NAME_MAX);
+      if (RESERVED_NAMES.has(candidate.toLowerCase())) {
+        showNameError("that name's reserved — try another");
+        return;
+      }
+      myName = candidate;
       localStorage.setItem(NAME_KEY, myName);
       input.value = "";
       updateActionUI();
@@ -221,6 +283,12 @@
   fab.addEventListener("click", openWidget);
   closeBtn.addEventListener("click", closeWidget);
   actionBtn.addEventListener("click", handleAction);
+  feed.addEventListener("click", (e) => {
+    const head = e.target.closest(".chat-day__head");
+    if (!head) return;
+    const group = head.closest(".chat-day");
+    group.dataset.open = group.dataset.open === "true" ? "false" : "true";
+  });
   input.addEventListener("input", updateActionUI);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {

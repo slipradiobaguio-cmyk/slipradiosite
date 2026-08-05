@@ -496,11 +496,54 @@ body.theme-dark .now-playing {
 }
 
 .chat-msg--system {
-  text-align: center;
+  text-align: left;
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.02em;
   color: var(--color-muted);
+}
+
+.chat-feed__current {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.chat-day__head {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+  padding: 0.4rem 0.05rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.65rem;
+}
+
+.chat-day__chevron {
+  transition: transform 0.15s ease;
+  font-size: 0.6rem;
+}
+
+.chat-day[data-open="false"] .chat-day__chevron {
+  transform: rotate(-90deg);
+}
+
+.chat-day[data-open="false"] .chat-day__rows {
+  display: none;
+}
+
+.chat-day__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .chat-msg {
@@ -573,17 +616,6 @@ body.theme-dark .now-playing {
   border-color: var(--color-bg-inverse);
 }
 
-.chat-msg--dj .chat-msg__name::after {
-  content: "DJ";
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  color: var(--color-text-inverse);
-  background: var(--color-bg-inverse);
-  padding: 1px 4px;
-  margin-left: 0.4rem;
-  letter-spacing: 0.04em;
-}
-
 .chat-msg--mine .chat-avatar {
   background: var(--color-bg-inverse);
   color: var(--color-text-inverse);
@@ -616,6 +648,14 @@ body.theme-dark .now-playing {
 
 .chat-action-row input[type="text"]::placeholder {
   color: var(--color-muted);
+}
+
+.chat-action-row__input--error {
+  border-color: var(--color-live);
+}
+
+.chat-action-row__input--error::placeholder {
+  color: var(--color-live);
 }
 
 .chat-action-btn {

@@ -3,6 +3,7 @@ import { jsonResponse, sanitizeText, getClientIp, hashIp } from "../../_utils.js
 const NAME_MAX = 24;
 const MESSAGE_MAX = 240;
 const PAGE_SIZE = 50;
+const RESERVED_NAMES = new Set(["admin", "slip radio"]);
 
 const CLIENT_COOLDOWN_MS = 2000;
 const IP_WINDOW_MS = 10000;
@@ -119,6 +120,9 @@ export async function onRequestPost({ request, env }) {
   const existing = await findExisting(env, clientId);
   const name = existing ? existing.name : providedName;
   if (!name) return jsonResponse({ error: "name_required" }, 400);
+  if (!existing && RESERVED_NAMES.has(name.toLowerCase())) {
+    return jsonResponse({ error: "name_reserved" }, 400);
+  }
 
   const createdAt = Date.now();
   const [clientOk, ipOk] = await Promise.all([
