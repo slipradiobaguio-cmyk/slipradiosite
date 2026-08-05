@@ -103,13 +103,13 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: var(--space-sm);
-  align-items: center;
+  align-items: start;
   padding-block: 0.45rem;
   border-bottom: 1px solid var(--color-border);
 }
 
 .schedule__time {
-  width: 23ch;
+  width: 12ch;
   white-space: nowrap;
   color: var(--color-muted);
 }
@@ -150,6 +150,15 @@
   letter-spacing: 0.04em;
   color: var(--color-muted);
   padding-top: var(--space-sm);
+  padding-bottom: 0.3rem;
+}
+
+.schedule__date {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  padding-top: 0.9rem;
   padding-bottom: 0.3rem;
 }
 

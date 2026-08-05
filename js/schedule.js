@@ -47,8 +47,8 @@
       : `${startStr} ${start.period}–${endStr} ${end.period}`;
   }
 
-  function rowMarkup(show, isLive, dateLabel) {
-    const time = dateLabel ? `${dateLabel} · ${formatTimeRange(show.time)}` : formatTimeRange(show.time);
+  function rowMarkup(show, isLive) {
+    const time = formatTimeRange(show.time);
     return `
       <a class="schedule__row${isLive ? " schedule__row--live" : ""}" href="/shows/${show.slug}">
         <span class="schedule__time">${time}</span>
@@ -98,7 +98,14 @@
 
       if (upcomingShows.length) {
         html += `<div class="schedule__group">Upcoming</div>`;
-        html += upcomingShows.map((show) => rowMarkup(show, false, formatDateShort(show.date))).join("");
+        let lastDate = null;
+        upcomingShows.forEach((show) => {
+          if (show.date !== lastDate) {
+            html += `<div class="schedule__date">${formatDateShort(show.date)}</div>`;
+            lastDate = show.date;
+          }
+          html += rowMarkup(show, false);
+        });
       }
 
       container.innerHTML = html;
