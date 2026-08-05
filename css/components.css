@@ -103,7 +103,7 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: var(--space-sm);
-  align-items: baseline;
+  align-items: center;
   padding-block: 0.45rem;
   border-bottom: 1px solid var(--color-border);
 }
