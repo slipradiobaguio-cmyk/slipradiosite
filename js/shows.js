@@ -40,31 +40,31 @@
       window.__srHeroCarouselCleanup = null;
     }
     if (!grid.classList.contains("shows-grid--home")) return;
-    const progressFill = grid.parentElement.querySelector(".hero-carousel-progress__fill");
+    const progressTrack = grid.parentElement.querySelector("[data-hero-progress]");
     const mq = window.matchMedia("(max-width: 767.98px)");
     const interval = 3000;
     let timer = null;
     let cards = [];
+    let segments = [];
     let index = 0;
+
+    function buildSegments() {
+      if (!progressTrack) return;
+      progressTrack.innerHTML = cards
+        .map(() => `<div class="hero-carousel-progress__seg"></div>`)
+        .join("");
+      segments = Array.from(progressTrack.children);
+    }
 
     function applyActive() {
       cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
-    }
-
-    function resetProgress() {
-      if (!progressFill) return;
-      progressFill.style.transition = "none";
-      progressFill.style.transform = "scaleX(0)";
-      void progressFill.offsetWidth;
-      progressFill.style.transition = `transform ${interval}ms linear`;
-      progressFill.style.transform = "scaleX(1)";
+      segments.forEach((seg, i) => seg.classList.toggle("is-active", i === index));
     }
 
     function goTo(i) {
       if (!cards.length) return;
       index = ((i % cards.length) + cards.length) % cards.length;
       applyActive();
-      resetProgress();
     }
 
     function advance() {
@@ -83,18 +83,15 @@
 
     function sync() {
       cards = Array.from(grid.querySelectorAll(".show-card"));
+      buildSegments();
       if (mq.matches) {
         index = 0;
         applyActive();
         start();
-        resetProgress();
       } else {
         stop();
         cards.forEach((card) => card.classList.remove("is-active"));
-        if (progressFill) {
-          progressFill.style.transition = "none";
-          progressFill.style.transform = "scaleX(1)";
-        }
+        segments.forEach((seg) => seg.classList.add("is-active"));
       }
     }
 

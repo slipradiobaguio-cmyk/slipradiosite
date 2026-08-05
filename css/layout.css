@@ -413,16 +413,26 @@ main {
    already (desktop, where the grid doesn't scroll) */
 
 .hero-carousel-progress {
-  height: 2px;
+  display: flex;
+  align-items: center;
+  height: 4px;
   margin-top: var(--space-sm);
-  background: var(--color-border);
-  overflow: hidden;
 }
 
-.hero-carousel-progress__fill {
-  height: 100%;
-  width: 100%;
+.hero-carousel-progress__seg {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  transition: height 0.25s ease, background-color 0.25s ease;
+}
+
+.hero-carousel-progress__seg.is-active {
+  height: 4px;
   background: var(--color-text);
-  transform: scaleX(0);
-  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel-progress__seg {
+    transition: none;
+  }
 }
