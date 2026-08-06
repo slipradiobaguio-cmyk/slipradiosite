@@ -9,6 +9,32 @@
   const photoPreview = form.querySelector("[data-field='photoPreview']");
   const successEl = document.querySelector("[data-dj-success]");
 
+  // set by the cf-turnstile widget's callbacks (see program.html) — lets us
+  // tell "still loading" apart from "blocked/expired" instead of only ever
+  // showing the same generic failure after the visitor already filled the form
+  let turnstileBlocked = false;
+  window.onDjTurnstileReady = function () {
+    turnstileBlocked = false;
+  };
+  window.onDjTurnstileError = function () {
+    turnstileBlocked = true;
+  };
+
+  function waitForTurnstileToken(timeoutMs) {
+    const input = form.querySelector('[name="cf-turnstile-response"]');
+    if (input && input.value) return Promise.resolve(input.value);
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const poll = () => {
+        const el = form.querySelector('[name="cf-turnstile-response"]');
+        if (el && el.value) return resolve(el.value);
+        if (turnstileBlocked || Date.now() - start >= timeoutMs) return resolve("");
+        setTimeout(poll, 250);
+      };
+      poll();
+    });
+  }
+
   function setStatus(message, tone) {
     statusEl.textContent = message || "";
     if (tone) statusEl.dataset.tone = tone;
@@ -104,10 +130,8 @@
       return;
     }
 
-    const turnstileInput = form.querySelector('[name="cf-turnstile-response"]');
     const payload = {
       website: form.elements.namedItem("website").value,
-      turnstileToken: turnstileInput ? turnstileInput.value : "",
       email: form.elements.namedItem("email").value.trim(),
       djName: form.elements.namedItem("djName").value.trim(),
       showName: form.elements.namedItem("showName").value.trim(),
@@ -132,6 +156,26 @@
     }
 
     submitBtn.disabled = true;
+
+    if (turnstileBlocked) {
+      setStatus("Verification couldn't load — try turning off any ad/content blocker or switching networks, then reload the page.", "error");
+      submitBtn.disabled = false;
+      return;
+    }
+
+    setStatus("Verifying…");
+    payload.turnstileToken = await waitForTurnstileToken(6000);
+    if (!payload.turnstileToken) {
+      setStatus(
+        turnstileBlocked
+          ? "Verification couldn't load — try turning off any ad/content blocker or switching networks, then reload the page."
+          : "Still preparing verification — wait a few seconds and try again.",
+        "error"
+      );
+      submitBtn.disabled = false;
+      return;
+    }
+
     setStatus("Submitting…");
     try {
       const res = await fetch("/api/submissions", {
