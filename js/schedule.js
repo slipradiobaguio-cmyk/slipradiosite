@@ -42,9 +42,7 @@
     const showMinutes = start.m !== 0 || end.m !== 0;
     const startStr = showMinutes ? `${start.h12}:${String(start.m).padStart(2, "0")}` : `${start.h12}`;
     const endStr = showMinutes ? `${end.h12}:${String(end.m).padStart(2, "0")}` : `${end.h12}`;
-    return start.period === end.period
-      ? `${startStr}–${endStr} ${end.period}`
-      : `${startStr} ${start.period}–${endStr} ${end.period}`;
+    return `${startStr}-${endStr}${end.period}`;
   }
 
   function rowMarkup(show, isLive) {

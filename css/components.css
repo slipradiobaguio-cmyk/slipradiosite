@@ -176,7 +176,7 @@
   }
 
   .schedule__time {
-    width: auto;
+    width: 8ch;
   }
 
   .schedule__show {
