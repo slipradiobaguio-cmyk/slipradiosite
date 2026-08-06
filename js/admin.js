@@ -279,21 +279,27 @@
     const draft = composeDefaults(sub);
     return `
       <div class="sub-row" data-id="${sub.id}">
-        <button type="button" class="sub-row__summary" data-action="toggle">
-          <span class="admin-thumb sub-row__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></span>
-          <span class="sub-row__name">${escapeHtml(sub.showName || sub.djName)}</span>
-          <span class="sub-row__meta">by ${escapeHtml(sub.djName)} · ${escapeHtml(slotText)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</span>
-          <span class="sub-row__status sub-row__status--${sub.status}">${sub.status}</span>
-          <span class="sub-row__chevron" aria-hidden="true">▾</span>
-        </button>
+        <div class="sub-row__summary">
+          <button type="button" class="sub-row__toggle" data-action="toggle">
+            <span class="admin-thumb sub-row__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></span>
+            <span class="sub-row__name">${escapeHtml(sub.showName || sub.djName)}</span>
+            <span class="sub-row__meta">by ${escapeHtml(sub.djName)} · ${escapeHtml(slotText)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</span>
+          </button>
+          <div class="sub-row__quick">
+            ${sub.status !== "accepted" ? `<button type="button" class="btn sub-row__quick-btn" data-action="accept">Accept</button>` : ""}
+            ${sub.status !== "declined" ? `<button type="button" class="btn sub-row__quick-btn" data-action="decline">Decline</button>` : ""}
+            <span class="sub-row__status sub-row__status--${sub.status}">${sub.status}</span>
+            <button type="button" class="sub-row__chevron-btn" data-action="toggle" aria-label="Show details">
+              <span class="sub-row__chevron" aria-hidden="true">▾</span>
+            </button>
+          </div>
+        </div>
         <div class="sub-row__detail" data-detail hidden>
           <div class="admin-submission__meta">${escapeHtml(sub.email)} · ${escapeHtml(sub.phone)} · ${escapeHtml(sub.location)}</div>
           <div class="admin-submission__meta">IG: ${escapeHtml(sub.instagram)} · Genres: ${escapeHtml(sub.genres)}</div>
           ${sub.mixLink ? `<div class="admin-submission__meta"><a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">Mix link ↗</a></div>` : ""}
           <p class="admin-submission__bio">${escapeHtml(sub.bio)}</p>
           <div class="admin-submission__actions">
-            ${sub.status !== "accepted" ? `<button type="button" class="btn" data-action="accept">Accept</button>` : ""}
-            ${sub.status !== "declined" ? `<button type="button" class="btn" data-action="decline">Decline</button>` : ""}
             <button type="button" class="btn" data-action="email">Email</button>
             <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
           </div>

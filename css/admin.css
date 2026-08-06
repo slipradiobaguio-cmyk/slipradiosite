@@ -1,4 +1,4 @@
-.admin-header__right {
+.admin-header__left {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -92,6 +92,18 @@
   .admin-tabs__btn {
     padding: 0.5rem 0.3rem;
   }
+}
+
+/* small, sleek section headings for each tab panel — deliberately smaller
+   than a normal <h2>, one step up from .admin-group__title */
+.admin-panel-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted-strong);
+  margin: 0 0 var(--space-sm);
 }
 
 .admin-group {
@@ -581,11 +593,19 @@
 .sub-row__summary {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  padding-block: 0.5rem;
+}
+
+.sub-row__toggle {
+  display: flex;
+  align-items: center;
   gap: 0.7rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: none;
   background: none;
-  padding: 0.65rem 0;
+  padding: 0.15rem 0;
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -614,6 +634,20 @@
   white-space: nowrap;
 }
 
+/* the two decision actions get real padding, unlike the plain-text .btn
+   default elsewhere — this is the one place a bigger hit target matters
+   more than staying flush with the "no boxes" treatment */
+.sub-row__quick {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.sub-row__quick-btn {
+  padding: 0.35rem 0.55rem;
+}
+
 .sub-row__status {
   font-family: var(--font-mono);
   font-size: 0.6rem;
@@ -630,9 +664,19 @@
   color: var(--color-live);
 }
 
-.sub-row__chevron {
+.sub-row__chevron-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 0.3rem;
+  cursor: pointer;
   color: var(--color-muted);
-  flex-shrink: 0;
+}
+
+.sub-row__chevron {
+  display: block;
   transition: transform 0.15s ease;
 }
 
@@ -656,10 +700,20 @@
     flex-wrap: wrap;
   }
 
+  .sub-row__toggle {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+  }
+
+  .sub-row__quick {
+    flex-basis: 100%;
+    padding-left: 2.7rem;
+  }
+
   .sub-row__meta {
-    order: 3;
     flex-basis: 100%;
     white-space: normal;
+    padding-left: 2.7rem;
   }
 
   .sub-row__detail {
