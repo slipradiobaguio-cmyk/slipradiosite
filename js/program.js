@@ -175,7 +175,7 @@
     }
 
     setStatus("Verifying…");
-    payload.turnstileToken = await waitForTurnstileToken(6000);
+    payload.turnstileToken = await waitForTurnstileToken(15000);
     if (!payload.turnstileToken) {
       setStatus(
         turnstileBlocked
