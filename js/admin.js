@@ -279,11 +279,19 @@
   // shared between the desktop table's expand row and the mobile compact
   // row's expand block — same content, two different wrappers around it
   function submissionDetailMarkup(sub, draft) {
+    const row = (key, value) => `<div class="admin-console__row"><span class="admin-console__key">${escapeHtml(key)}</span>${value}</div>`;
+    const photoExt = sub.photoUrl ? sub.photoUrl.split(".").pop() : "";
     return `
-      <div class="admin-submission__meta">${escapeHtml(sub.email)} · ${escapeHtml(sub.phone)} · ${escapeHtml(sub.location)}</div>
-      <div class="admin-submission__meta">IG: ${escapeHtml(sub.instagram)} · Genres: ${escapeHtml(sub.genres)}</div>
-      ${sub.mixLink ? `<div class="admin-submission__meta"><a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">Mix link ↗</a></div>` : ""}
-      <p class="admin-submission__bio">${escapeHtml(sub.bio)}</p>
+      <div class="admin-console">
+        ${row("email", escapeHtml(sub.email))}
+        ${row("phone", escapeHtml(sub.phone))}
+        ${row("loc", escapeHtml(sub.location))}
+        ${row("ig", escapeHtml(sub.instagram))}
+        ${row("genres", escapeHtml(sub.genres))}
+        ${sub.mixLink ? row("mix", `<a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">${escapeHtml(sub.mixLink)} ↗</a>`) : ""}
+        ${sub.photoUrl ? row("photo", `<a href="${escapeHtml(sub.photoUrl)}" download="${escapeHtml(sub.djName)}-photo.${escapeHtml(photoExt)}">Download ↓</a>`) : ""}
+        ${row("bio", `&ldquo;${escapeHtml(sub.bio)}&rdquo;`)}
+      </div>
       <form class="admin-compose" data-compose hidden>
         <div>
           <label>To</label>
@@ -494,18 +502,22 @@
     }
   });
 
-  function slotRowMarkup(slot) {
+  function slotRowMarkup(slot, showDate) {
     const reservedSub = slot.submissionId ? cachedSubmissions.find((s) => s.id === slot.submissionId) : null;
-    const statusLabel = slot.status === "reserved" ? `Reserved${reservedSub ? " — " + escapeHtml(reservedSub.djName) : ""}` : "Open";
+    const booked = slot.status === "reserved";
     return `
       <div class="admin-slot" data-id="${slot.id}">
-        <div class="admin-slot__body">
-          <span class="admin-slot__when">${slot.date} · ${slot.startTime}–${slot.endTime}</span>
-          <span class="admin-slot__status admin-slot__status--${slot.status}">${statusLabel}</span>
+        <div class="admin-slot__row">
+          <span class="admin-slot__date${showDate ? "" : " admin-slot__date--muted"}">${escapeHtml(slot.date)}</span>
+          <span class="admin-slot__tag admin-slot__tag--${slot.status}">${booked ? "Booked" : "Open"}</span>
         </div>
-        <div class="admin-slot__actions">
-          ${slot.status === "reserved" ? `<button type="button" class="btn" data-action="release">Release</button>` : ""}
-          <button type="button" class="btn btn--danger" data-action="delete-slot">Delete</button>
+        <div class="admin-slot__row">
+          <span class="admin-slot__time">${slot.startTime}–${slot.endTime}</span>
+          <span class="admin-slot__who">${booked && reservedSub ? escapeHtml(reservedSub.djName) : ""}</span>
+          <span class="admin-slot__actions">
+            ${booked ? `<button type="button" class="admin-slot__action" data-action="release">release</button>` : ""}
+            <button type="button" class="admin-slot__action admin-slot__action--danger" data-action="delete-slot">delete</button>
+          </span>
         </div>
       </div>
     `;
@@ -513,7 +525,14 @@
 
   function renderSlots() {
     slotsEmpty.hidden = cachedSlots.length > 0;
-    slotsList.innerHTML = cachedSlots.map(slotRowMarkup).join("");
+    let prevDate = null;
+    slotsList.innerHTML = cachedSlots
+      .map((slot) => {
+        const showDate = slot.date !== prevDate;
+        prevDate = slot.date;
+        return slotRowMarkup(slot, showDate);
+      })
+      .join("");
   }
 
   async function loadSlots() {

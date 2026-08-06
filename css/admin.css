@@ -670,15 +670,31 @@
   display: none;
 }
 
-.admin-submission__meta {
-  font-size: 0.8rem;
-  color: var(--color-muted);
+/* submission answers — dense mono key/value console block, matching the
+   broadcast-log feel of the chat/status pieces rather than a form-y grid */
+
+.admin-console {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.9;
+  background: var(--color-surface-alt);
+  padding: 0.6rem 0.7rem;
+  margin: 0.5rem 0;
   word-break: break-word;
 }
 
-.admin-submission__bio {
-  font-size: 0.85rem;
-  margin-top: 0.2rem;
+.admin-console__row + .admin-console__row {
+  border-top: 1px solid var(--color-border);
+}
+
+.admin-console a {
+  text-decoration: underline;
+}
+
+.admin-console__key {
+  display: inline-block;
+  width: 3.6rem;
+  color: var(--color-muted);
 }
 
 .admin-submission__actions {
@@ -752,43 +768,152 @@
   margin-bottom: var(--space-md);
 }
 
+/* timeslot log — dense one-line-per-slot console rows; the date column only
+   prints where it changes (kept in the DOM but transparent otherwise, so
+   columns stay aligned) rather than repeating it on every row */
+
 .admin-slots {
-  display: grid;
-  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .admin-slot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  border: 1px solid var(--color-border);
-  padding: 0.6rem var(--space-sm);
   flex-wrap: wrap;
-}
-
-.admin-slot__body {
-  display: flex;
   align-items: baseline;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  padding: 0.6rem 0.1rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.admin-slot__when {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
+/* transparent on wide screens so its children (date/tag, then
+   time/who/actions) sit flat in .admin-slot's single-line flex row; only
+   becomes a real row once stacked on mobile below */
+.admin-slot__row {
+  display: contents;
 }
 
-.admin-slot__status {
-  font-size: 0.75rem;
+.admin-slot__date {
+  width: 5.2rem;
+  flex-shrink: 0;
+  white-space: nowrap;
   color: var(--color-muted);
 }
 
-.admin-slot__status--reserved {
-  color: var(--color-live);
+.admin-slot__date--muted {
+  color: transparent;
+}
+
+.admin-slot__tag {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+}
+
+.admin-slot__tag--reserved {
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+}
+
+.admin-slot__time {
+  flex-shrink: 0;
+}
+
+.admin-slot__who {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-slot__actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.admin-slot__action {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.admin-slot__action:hover {
+  color: var(--color-text);
+}
+
+.admin-slot__action--danger {
+  color: var(--color-live);
+  opacity: 0.75;
+}
+
+.admin-slot__action--danger:hover {
+  opacity: 1;
+}
+
+@media (max-width: 480px) {
+  .admin-slots {
+    border-top: none;
+  }
+
+  .admin-slot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+    padding: 0.9rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+  }
+
+  .admin-slots .admin-slot:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .admin-slot__row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .admin-slot__date {
+    width: auto;
+    font-size: 0.85rem;
+  }
+
+  /* each slot is now its own bordered card at this width, not a flowing
+     log, so the date belongs on every card rather than only on the first
+     of a run */
+  .admin-slot__date--muted {
+    color: var(--color-muted);
+  }
+
+  .admin-slot__time {
+    font-size: 0.85rem;
+  }
+
+  .admin-slot__who {
+    text-align: right;
+  }
+
+  .admin-slot__actions {
+    gap: 0.9rem;
+    margin-left: auto;
+  }
+
+  .admin-slot__action {
+    font-size: 0.72rem;
+  }
 }
