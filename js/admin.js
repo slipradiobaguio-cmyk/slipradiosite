@@ -77,6 +77,7 @@
     check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5L13 5"/></svg>',
     cross: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
     mail: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="9" rx="1"/><path d="M2 4l6 5 6-5"/></svg>',
+    release: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="9" height="6" rx="1"/><path d="M5.5 7.5V5a2.5 2.5 0 0 1 4.7-1.2"/></svg>',
   };
 
   const timeInput = form.elements.namedItem("time");
@@ -502,37 +503,49 @@
     }
   });
 
-  function slotRowMarkup(slot, showDate) {
+  function formatSlotGroupDate(dateStr) {
+    const parsed = new Date(`${dateStr}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return dateStr;
+    return parsed.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  }
+
+  function slotRowMarkup(slot) {
     const reservedSub = slot.submissionId ? cachedSubmissions.find((s) => s.id === slot.submissionId) : null;
     const booked = slot.status === "reserved";
     return `
       <div class="admin-slot" data-id="${slot.id}">
-        <div class="admin-slot__row">
-          <span class="admin-slot__date${showDate ? "" : " admin-slot__date--muted"}">${escapeHtml(slot.date)}</span>
-          <span class="admin-slot__tag admin-slot__tag--${slot.status}">${booked ? "Booked" : "Open"}</span>
-        </div>
-        <div class="admin-slot__row">
-          <span class="admin-slot__time">${slot.startTime}–${slot.endTime}</span>
-          <span class="admin-slot__who">${booked && reservedSub ? escapeHtml(reservedSub.djName) : ""}</span>
-          <span class="admin-slot__actions">
-            ${booked ? `<button type="button" class="admin-slot__action" data-action="release">release</button>` : ""}
-            <button type="button" class="admin-slot__action admin-slot__action--danger" data-action="delete-slot">delete</button>
-          </span>
-        </div>
+        <span class="admin-slot__tag admin-slot__tag--${slot.status}">${booked ? "Booked" : "Open"}</span>
+        <span class="admin-slot__time">${slot.startTime}–${slot.endTime}</span>
+        <span class="admin-slot__who">${booked && reservedSub ? escapeHtml(reservedSub.djName) : ""}</span>
+        <span class="admin-slot__actions">
+          ${booked ? `<button type="button" class="icon-btn" data-action="release" title="Release" aria-label="Release timeslot">${ICONS.release}</button>` : ""}
+          <button type="button" class="icon-btn icon-btn--danger" data-action="delete-slot" title="Delete" aria-label="Delete timeslot">${ICONS.delete}</button>
+        </span>
+      </div>
+    `;
+  }
+
+  function slotGroupMarkup(date, slots) {
+    return `
+      <div class="admin-slot-group">
+        <div class="admin-slot-group__title">${escapeHtml(formatSlotGroupDate(date))} <span class="admin-slot-group__count">${slots.length}</span></div>
+        <div class="admin-slot-group__body">${slots.map(slotRowMarkup).join("")}</div>
       </div>
     `;
   }
 
   function renderSlots() {
     slotsEmpty.hidden = cachedSlots.length > 0;
-    let prevDate = null;
-    slotsList.innerHTML = cachedSlots
-      .map((slot) => {
-        const showDate = slot.date !== prevDate;
-        prevDate = slot.date;
-        return slotRowMarkup(slot, showDate);
-      })
-      .join("");
+    const groups = [];
+    cachedSlots.forEach((slot) => {
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && lastGroup.date === slot.date) {
+        lastGroup.slots.push(slot);
+      } else {
+        groups.push({ date: slot.date, slots: [slot] });
+      }
+    });
+    slotsList.innerHTML = groups.map((g) => slotGroupMarkup(g.date, g.slots)).join("");
   }
 
   async function loadSlots() {
@@ -580,6 +593,7 @@
     const id = row.dataset.id;
 
     if (button.dataset.action === "release") {
+      if (!confirm("Cancel this DJ's booking and reopen the timeslot?")) return;
       try {
         const res = await fetch(`/api/admin/slots/${id}`, { method: "PATCH" });
         if (!res.ok) throw new Error(`release ${res.status}`);
