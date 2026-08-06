@@ -25,5 +25,5 @@ database_id = "22d45db1-3f39-4c97-8380-26e0ed0c515e"
 
 [vars]
 NOW_PLAYING_API_URL = "https://a8.asurahosting.com/api/nowplaying/slip_radio"
-EMAIL_FROM = "slip radio <onboarding@resend.dev>"
+EMAIL_FROM = "slip radio <program@slipradio.live>"
 ADMIN_NOTIFY_EMAIL = "slipradiobaguio@gmail.com"

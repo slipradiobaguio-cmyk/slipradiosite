@@ -36,11 +36,27 @@
     </div>
 
     <div class="admin-tabs" role="tablist">
-      <button type="button" class="admin-tabs__btn" data-tab-button="list" role="tab" aria-selected="true">List</button>
-      <button type="button" class="admin-tabs__btn" data-tab-button="form" role="tab" aria-selected="false">Add show</button>
-      <button type="button" class="admin-tabs__btn" data-tab-button="submissions" role="tab" aria-selected="false">Submissions<span class="admin-tabs__badge" data-submissions-badge hidden></span></button>
-      <button type="button" class="admin-tabs__btn" data-tab-button="schedule" role="tab" aria-selected="false">Schedule</button>
-      <button type="button" class="admin-tabs__btn" data-tab-button="chat" role="tab" aria-selected="false">Chat</button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="list" role="tab" aria-selected="true" aria-label="List">
+        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+        <span class="admin-tabs__label">List</span>
+      </button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="form" role="tab" aria-selected="false" aria-label="Add show">
+        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        <span class="admin-tabs__label">Add show</span>
+      </button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="submissions" role="tab" aria-selected="false" aria-label="Submissions">
+        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="9" rx="1"/><path d="M2 4l6 5 6-5"/></svg>
+        <span class="admin-tabs__label">Submissions</span>
+        <span class="admin-tabs__badge" data-submissions-badge hidden></span>
+      </button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="schedule" role="tab" aria-selected="false" aria-label="Schedule">
+        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.5h12M5 2v3M11 2v3"/></svg>
+        <span class="admin-tabs__label">Schedule</span>
+      </button>
+      <button type="button" class="admin-tabs__btn" data-tab-button="chat" role="tab" aria-selected="false" aria-label="Chat">
+        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11v7H7l-3 2.5v-2.5H2.5z"/></svg>
+        <span class="admin-tabs__label">Chat</span>
+      </button>
     </div>
 
     <p class="admin-status" data-admin-status></p>
@@ -135,18 +151,51 @@
     <section data-tab-panel="schedule" hidden>
       <h2 data-slot-form-title>Add a timeslot</h2>
       <form class="admin-form admin-form--inline" data-slot-form>
-        <div class="admin-form__row admin-form__row--triple">
+        <div class="admin-form__row admin-form__row--split">
           <div>
             <label for="slot-date">Date</label>
             <input type="date" id="slot-date" name="date" required>
           </div>
           <div>
-            <label for="slot-start">Start</label>
-            <input type="time" id="slot-start" name="startTime" required>
-          </div>
-          <div>
-            <label for="slot-end">End</label>
-            <input type="time" id="slot-end" name="endTime" required>
+            <label for="slot-time">Time</label>
+            <select data-slot-time-preset>
+              <option value="">Choose a slot…</option>
+              <option value="00:00 - 01:00">00:00 – 01:00</option>
+              <option value="01:00 - 02:00">01:00 – 02:00</option>
+              <option value="02:00 - 03:00">02:00 – 03:00</option>
+              <option value="03:00 - 04:00">03:00 – 04:00</option>
+              <option value="04:00 - 05:00">04:00 – 05:00</option>
+              <option value="05:00 - 06:00">05:00 – 06:00</option>
+              <option value="06:00 - 07:00">06:00 – 07:00</option>
+              <option value="07:00 - 08:00">07:00 – 08:00</option>
+              <option value="08:00 - 09:00">08:00 – 09:00</option>
+              <option value="09:00 - 10:00">09:00 – 10:00</option>
+              <option value="10:00 - 11:00">10:00 – 11:00</option>
+              <option value="11:00 - 12:00">11:00 – 12:00</option>
+              <option value="12:00 - 13:00">12:00 – 13:00</option>
+              <option value="13:00 - 14:00">13:00 – 14:00</option>
+              <option value="14:00 - 15:00">14:00 – 15:00</option>
+              <option value="15:00 - 16:00">15:00 – 16:00</option>
+              <option value="16:00 - 17:00">16:00 – 17:00</option>
+              <option value="17:00 - 18:00">17:00 – 18:00</option>
+              <option value="18:00 - 19:00">18:00 – 19:00</option>
+              <option value="19:00 - 20:00">19:00 – 20:00</option>
+              <option value="20:00 - 21:00">20:00 – 21:00</option>
+              <option value="21:00 - 22:00">21:00 – 22:00</option>
+              <option value="22:00 - 23:00">22:00 – 23:00</option>
+              <option value="23:00 - 00:00">23:00 – 00:00</option>
+              <option value="custom">Custom…</option>
+            </select>
+            <div class="admin-form__row admin-form__row--split" data-slot-custom-time hidden>
+              <div>
+                <label for="slot-start">Start</label>
+                <input type="time" id="slot-start" name="startTime">
+              </div>
+              <div>
+                <label for="slot-end">End</label>
+                <input type="time" id="slot-end" name="endTime">
+              </div>
+            </div>
           </div>
         </div>
         <div class="admin-list__actions">

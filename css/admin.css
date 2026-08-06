@@ -8,16 +8,28 @@
 
 .admin-tabs {
   display: flex;
-  gap: var(--space-xs);
+  gap: var(--space-md);
   border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-tabs__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 0.6rem 0.2rem;
+  padding: 0.6rem 0.1rem;
   margin-bottom: -1px;
   border: none;
   border-bottom: 2px solid transparent;
@@ -26,9 +38,34 @@
   cursor: pointer;
 }
 
+.admin-tabs__icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 .admin-tabs__btn[aria-selected="true"] {
   color: var(--color-text);
   border-bottom-color: var(--color-text);
+}
+
+@media (max-width: 480px) {
+  .admin-tabs {
+    gap: var(--space-sm);
+  }
+
+  .admin-tabs__label {
+    display: none;
+  }
+
+  .admin-tabs__icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .admin-tabs__btn {
+    padding: 0.5rem 0.3rem;
+  }
 }
 
 .admin-group {
@@ -335,13 +372,13 @@
   gap: var(--space-sm);
 }
 
+.admin-form__row[hidden] {
+  display: none;
+}
+
 @media (min-width: 768px) {
   .admin-form__row--split {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .admin-form__row--triple {
-    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
@@ -524,6 +561,10 @@
   border-radius: 999px;
 }
 
+.admin-tabs__badge[hidden] {
+  display: none;
+}
+
 /* submissions review — a flat list of collapsed rows, one line each, that
    expand in place on click. No card boxes: matches the plain-list feel of
    the Add-show form rather than introducing a new boxed component. */
@@ -605,6 +646,10 @@
   gap: 0.3rem;
 }
 
+.sub-row__detail[hidden] {
+  display: none;
+}
+
 @media (max-width: 767.98px) {
   .sub-row__summary {
     flex-wrap: wrap;
@@ -645,6 +690,10 @@
   margin-top: var(--space-sm);
   padding-top: var(--space-sm);
   border-top: 1px solid var(--color-border);
+}
+
+.admin-compose[hidden] {
+  display: none;
 }
 
 .admin-compose label {

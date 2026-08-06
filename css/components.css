@@ -831,6 +831,10 @@ body.theme-dark .now-playing {
   max-width: 560px;
 }
 
+.dj-form[hidden] {
+  display: none;
+}
+
 .dj-form label,
 .dj-form legend {
   display: block;

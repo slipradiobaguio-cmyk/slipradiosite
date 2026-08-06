@@ -47,6 +47,26 @@
   const slotsEmpty = document.querySelector("[data-slots-empty]");
   let cachedSlots = [];
 
+  const slotTimePreset = slotForm.querySelector("[data-slot-time-preset]");
+  const slotCustomTime = slotForm.querySelector("[data-slot-custom-time]");
+  const slotStartInput = slotForm.elements.namedItem("startTime");
+  const slotEndInput = slotForm.elements.namedItem("endTime");
+
+  function syncSlotTimeVisibility() {
+    slotCustomTime.hidden = slotTimePreset.value !== "custom";
+  }
+
+  slotTimePreset.addEventListener("change", () => {
+    if (slotTimePreset.value && slotTimePreset.value !== "custom") {
+      const [start, end] = slotTimePreset.value.split(" - ");
+      slotStartInput.value = start;
+      slotEndInput.value = end;
+    }
+    syncSlotTimeVisibility();
+    if (slotTimePreset.value === "custom") slotStartInput.focus();
+  });
+  syncSlotTimeVisibility();
+
   const ICONS = {
     view: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z"/><circle cx="8" cy="8" r="2"/></svg>',
     edit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M11 2l3 3-8 8-3.5.5.5-3.5 8-8z"/></svg>',
@@ -229,9 +249,34 @@
 
   const SETUP_LABELS = { digital: "Digital", vinyl: "Vinyl", hybrid: "Hybrid" };
 
+  // personalized per submission + its current status, so the compose panel
+  // opens with a relevant draft instead of a blank/generic one every time
+  function composeDefaults(sub) {
+    const showName = sub.showName || sub.djName;
+    const slotText = sub.slotDate ? `${sub.slotDate}, ${sub.slotStart}–${sub.slotEnd}` : "your requested time";
+
+    if (sub.status === "accepted") {
+      return {
+        subject: `You're confirmed — "${showName}" on slip radio`,
+        message: `Hi ${sub.djName},\n\nYou're confirmed to play "${showName}" on ${slotText}. We'll follow up with studio details soon.\n\n— slip radio`,
+      };
+    }
+    if (sub.status === "declined") {
+      return {
+        subject: `About your "${showName}" submission`,
+        message: `Hi ${sub.djName},\n\nThanks so much for applying to play "${showName}" — we're not able to fit it in this time around, but we'd love to hear from you again for a future season.\n\n— slip radio`,
+      };
+    }
+    return {
+      subject: `Re: your "${showName}" submission`,
+      message: `Hi ${sub.djName},\n\n`,
+    };
+  }
+
   function submissionRowMarkup(sub) {
     const slotText = sub.slotDate ? `${sub.slotDate} · ${sub.slotStart}–${sub.slotEnd}` : "No timeslot";
     const photo = sub.photoUrl ? `style="background-image:url('${sub.photoUrl}')"` : "";
+    const draft = composeDefaults(sub);
     return `
       <div class="sub-row" data-id="${sub.id}">
         <button type="button" class="sub-row__summary" data-action="toggle">
@@ -259,11 +304,11 @@
             </div>
             <div>
               <label>Subject</label>
-              <input type="text" name="subject" value="Re: your slip radio submission" required>
+              <input type="text" name="subject" value="${escapeHtml(draft.subject)}" required>
             </div>
             <div>
               <label>Message</label>
-              <textarea name="message" required>Hi ${escapeHtml(sub.djName)},\n\n</textarea>
+              <textarea name="message" required>${escapeHtml(draft.message)}</textarea>
             </div>
             <p class="admin-compose__status" data-compose-status></p>
             <div class="admin-compose__actions">
@@ -438,6 +483,7 @@
       });
       if (!res.ok) throw new Error(`slot ${res.status}`);
       slotForm.reset();
+      syncSlotTimeVisibility();
       setStatus("Timeslot added.");
       await loadSlots();
     } catch (err) {
