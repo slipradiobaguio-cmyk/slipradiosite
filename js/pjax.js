@@ -2,7 +2,7 @@
   const main = document.querySelector("main");
   if (!main) return;
 
-  const CONTENT_SCRIPTS = ["/js/nav.js", "/js/shows.js", "/js/schedule.js", "/js/show-detail.js"];
+  const CONTENT_SCRIPTS = ["/js/nav.js", "/js/shows.js", "/js/schedule.js", "/js/show-detail.js", "/js/program.js"];
 
   function isPjaxable(link) {
     if (!link || !link.href) return false;

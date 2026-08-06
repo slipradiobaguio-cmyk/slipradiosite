@@ -495,3 +495,157 @@
   padding: 0.55rem 0.6rem;
   background: var(--color-bg);
 }
+
+.btn--danger {
+  border-color: var(--color-live);
+  color: var(--color-live);
+}
+
+.btn--danger:hover {
+  background: var(--color-live);
+  color: var(--color-text-inverse);
+}
+
+.admin-tabs__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding-inline: 0.25rem;
+  margin-left: 0.4rem;
+  background: var(--color-live);
+  color: var(--color-text-inverse);
+  font-size: 0.65rem;
+  border-radius: 999px;
+}
+
+/* submissions review — one card per applicant, deliberately denser than the
+   public site's show cards since this is a working list, not a display grid */
+
+.admin-submissions {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.admin-submission {
+  display: flex;
+  gap: var(--space-sm);
+  border: 1px solid var(--color-border);
+  padding: var(--space-sm);
+}
+
+.admin-submission__thumb {
+  width: 80px;
+  height: 80px;
+}
+
+.admin-submission__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.admin-submission__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-submission__name {
+  font-weight: 600;
+}
+
+.admin-submission__status {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.admin-submission__status--accepted {
+  color: var(--color-live);
+}
+
+.admin-submission__meta {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  word-break: break-word;
+}
+
+.admin-submission__bio {
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+
+.admin-submission__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 767.98px) {
+  .admin-submission {
+    flex-direction: column;
+  }
+
+  .admin-submission__thumb {
+    width: 100%;
+    height: 140px;
+  }
+}
+
+/* schedule/slots manager — the "calendar" the public /program form's
+   timeslot dropdown reads from */
+
+.admin-form--inline {
+  max-width: none;
+  margin-bottom: var(--space-md);
+}
+
+.admin-slots {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border: 1px solid var(--color-border);
+  padding: 0.6rem var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.admin-slot__body {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.admin-slot__when {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.admin-slot__status {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.admin-slot__status--reserved {
+  color: var(--color-live);
+}
+
+.admin-slot__actions {
+  display: flex;
+  gap: 0.5rem;
+}

@@ -10,6 +10,10 @@ id = "9470153371854d02bc402a79f8d0faa0"
 binding = "CHAT_RL"
 id = "45b624986c794ceb85048b19a4f924e1"
 
+[[kv_namespaces]]
+binding = "SUBMISSIONS"
+id = "4d172fdf88ae47a28b21cf27d39475d2"
+
 [[r2_buckets]]
 binding = "THUMBNAILS"
 bucket_name = "slip-radio-thumbnails"
@@ -21,3 +25,5 @@ database_id = "22d45db1-3f39-4c97-8380-26e0ed0c515e"
 
 [vars]
 NOW_PLAYING_API_URL = "https://a8.asurahosting.com/api/nowplaying/slip_radio"
+EMAIL_FROM = "slip radio <onboarding@resend.dev>"
+ADMIN_NOTIFY_EMAIL = "slipradiobaguio@gmail.com"

@@ -37,6 +37,16 @@
   const banner = document.querySelector("[data-onair-banner]");
   const bannerLabel = document.querySelector("[data-onair-banner-label]");
 
+  const submissionsList = document.querySelector("[data-submissions-list]");
+  const submissionsEmpty = document.querySelector("[data-submissions-empty]");
+  const submissionsBadge = document.querySelector("[data-submissions-badge]");
+  let cachedSubmissions = [];
+
+  const slotForm = document.querySelector("[data-slot-form]");
+  const slotsList = document.querySelector("[data-slots-list]");
+  const slotsEmpty = document.querySelector("[data-slots-empty]");
+  let cachedSlots = [];
+
   const ICONS = {
     view: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M1 8s2.5-4.5 7-4.5S15 8 15 8s-2.5 4.5-7 4.5S1 8 1 8z"/><circle cx="8" cy="8" r="2"/></svg>',
     edit: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M11 2l3 3-8 8-3.5.5.5-3.5 8-8z"/></svg>',
@@ -77,6 +87,9 @@
       clearInterval(chatPollTimer);
       chatPollTimer = null;
     }
+
+    if (name === "submissions") loadSubmissions().catch(() => setStatus("Couldn't load submissions.", "error"));
+    if (name === "schedule") loadSlots().catch(() => setStatus("Couldn't load the schedule.", "error"));
   }
 
   tabButtons.forEach((button) => {
@@ -213,6 +226,201 @@
     cachedShows = await res.json();
     renderLists();
   }
+
+  const SETUP_LABELS = { digital: "Digital", vinyl: "Vinyl", hybrid: "Hybrid" };
+
+  function submissionCardMarkup(sub) {
+    const slotText = sub.slotDate ? `${sub.slotDate} · ${sub.slotStart}–${sub.slotEnd}` : "No timeslot";
+    const photo = sub.photoUrl ? `style="background-image:url('${sub.photoUrl}')"` : "";
+    return `
+      <div class="admin-submission" data-id="${sub.id}">
+        <div class="admin-thumb admin-submission__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></div>
+        <div class="admin-submission__body">
+          <div class="admin-submission__head">
+            <span class="admin-submission__name">${escapeHtml(sub.djName)}</span>
+            <span class="admin-submission__status admin-submission__status--${sub.status}">${sub.status}</span>
+          </div>
+          <div class="admin-submission__meta">${escapeHtml(slotText)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</div>
+          <div class="admin-submission__meta">${escapeHtml(sub.email)} · ${escapeHtml(sub.phone)} · ${escapeHtml(sub.location)}</div>
+          <div class="admin-submission__meta">IG: ${escapeHtml(sub.instagram)} · Genres: ${escapeHtml(sub.genres)}</div>
+          ${sub.mixLink ? `<div class="admin-submission__meta"><a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">Mix link ↗</a></div>` : ""}
+          <p class="admin-submission__bio">${escapeHtml(sub.bio)}</p>
+          <div class="admin-submission__actions">
+            ${sub.status !== "accepted" ? `<button type="button" class="btn" data-action="accept">Accept</button>` : ""}
+            ${sub.status !== "declined" ? `<button type="button" class="btn" data-action="decline">Decline</button>` : ""}
+            <button type="button" class="btn" data-action="email">Email</button>
+            <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSubmissions() {
+    submissionsEmpty.hidden = cachedSubmissions.length > 0;
+    submissionsList.innerHTML = cachedSubmissions.map(submissionCardMarkup).join("");
+    const newCount = cachedSubmissions.filter((s) => s.status === "new").length;
+    if (submissionsBadge) {
+      submissionsBadge.textContent = String(newCount);
+      submissionsBadge.hidden = newCount === 0;
+    }
+  }
+
+  async function loadSubmissions() {
+    const res = await fetch("/api/admin/submissions", { cache: "no-store" });
+    if (!res.ok) throw new Error(`submissions ${res.status}`);
+    cachedSubmissions = await res.json();
+    renderSubmissions();
+  }
+
+  submissionsList.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-action]");
+    if (!button) return;
+    const row = button.closest("[data-id]");
+    const id = row.dataset.id;
+    const sub = cachedSubmissions.find((s) => s.id === id);
+    const action = button.dataset.action;
+
+    if (action === "accept" || action === "decline") {
+      const status = action === "accept" ? "accepted" : "declined";
+      try {
+        const res = await fetch(`/api/admin/submissions/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        });
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        await loadSubmissions();
+        setStatus(`Marked "${sub ? sub.djName : id}" ${status}.`);
+      } catch (err) {
+        setStatus("Couldn't update submission — try again.", "error");
+      }
+      return;
+    }
+
+    if (action === "delete") {
+      if (!confirm(`Delete ${sub ? sub.djName + "'s" : "this"} submission? This can't be undone.`)) return;
+      try {
+        const res = await fetch(`/api/admin/submissions/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`delete ${res.status}`);
+        await loadSubmissions();
+        setStatus("Deleted.");
+      } catch (err) {
+        setStatus("Couldn't delete — try again.", "error");
+      }
+      return;
+    }
+
+    if (action === "email") {
+      if (!sub) return;
+      const subject = prompt("Subject", "Re: your slip radio submission");
+      if (subject === null) return;
+      const message = prompt(`Message to ${sub.email}`, `Hi ${sub.djName},\n\n`);
+      if (message === null || !message.trim()) return;
+      try {
+        const res = await fetch("/api/admin/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: sub.email, subject, message }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `email ${res.status}`);
+        setStatus(`Email sent to ${sub.email}.`);
+      } catch (err) {
+        setStatus(err.message || "Couldn't send email — try again.", "error");
+      }
+    }
+  });
+
+  function slotRowMarkup(slot) {
+    const reservedSub = slot.submissionId ? cachedSubmissions.find((s) => s.id === slot.submissionId) : null;
+    const statusLabel = slot.status === "reserved" ? `Reserved${reservedSub ? " — " + escapeHtml(reservedSub.djName) : ""}` : "Open";
+    return `
+      <div class="admin-slot" data-id="${slot.id}">
+        <div class="admin-slot__body">
+          <span class="admin-slot__when">${slot.date} · ${slot.startTime}–${slot.endTime}</span>
+          <span class="admin-slot__status admin-slot__status--${slot.status}">${statusLabel}</span>
+        </div>
+        <div class="admin-slot__actions">
+          ${slot.status === "reserved" ? `<button type="button" class="btn" data-action="release">Release</button>` : ""}
+          <button type="button" class="btn btn--danger" data-action="delete-slot">Delete</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSlots() {
+    slotsEmpty.hidden = cachedSlots.length > 0;
+    slotsList.innerHTML = cachedSlots.map(slotRowMarkup).join("");
+  }
+
+  async function loadSlots() {
+    const [slotsRes] = await Promise.all([
+      fetch("/api/admin/slots", { cache: "no-store" }),
+      cachedSubmissions.length ? Promise.resolve() : loadSubmissions().catch(() => {}),
+    ]);
+    if (!slotsRes.ok) throw new Error(`slots ${slotsRes.status}`);
+    cachedSlots = await slotsRes.json();
+    renderSlots();
+  }
+
+  slotForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      date: slotForm.elements.namedItem("date").value,
+      startTime: slotForm.elements.namedItem("startTime").value,
+      endTime: slotForm.elements.namedItem("endTime").value,
+    };
+    if (!payload.date || !payload.startTime || !payload.endTime) return;
+    if (payload.endTime <= payload.startTime) {
+      setStatus("End time must be after start time.", "error");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`slot ${res.status}`);
+      slotForm.reset();
+      setStatus("Timeslot added.");
+      await loadSlots();
+    } catch (err) {
+      setStatus("Couldn't add timeslot — try again.", "error");
+    }
+  });
+
+  slotsList.addEventListener("click", async (e) => {
+    const button = e.target.closest("button[data-action]");
+    if (!button) return;
+    const row = button.closest("[data-id]");
+    const id = row.dataset.id;
+
+    if (button.dataset.action === "release") {
+      try {
+        const res = await fetch(`/api/admin/slots/${id}`, { method: "PATCH" });
+        if (!res.ok) throw new Error(`release ${res.status}`);
+        await loadSlots();
+        setStatus("Timeslot released.");
+      } catch (err) {
+        setStatus("Couldn't release timeslot — try again.", "error");
+      }
+      return;
+    }
+
+    if (button.dataset.action === "delete-slot") {
+      if (!confirm("Delete this timeslot?")) return;
+      try {
+        const res = await fetch(`/api/admin/slots/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`delete ${res.status}`);
+        await loadSlots();
+        setStatus("Timeslot deleted.");
+      } catch (err) {
+        setStatus("Couldn't delete timeslot — try again.", "error");
+      }
+    }
+  });
 
   function fillForm(show) {
     fields.forEach((key) => {
@@ -566,4 +774,5 @@
   });
 
   loadList().catch(() => setStatus("Couldn't load shows.", "error"));
+  loadSubmissions().catch(() => {});
 })();
