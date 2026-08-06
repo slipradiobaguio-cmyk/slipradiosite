@@ -288,6 +288,7 @@
           <div class="sub-row__quick">
             ${sub.status !== "accepted" ? `<button type="button" class="btn sub-row__quick-btn" data-action="accept">Accept</button>` : ""}
             ${sub.status !== "declined" ? `<button type="button" class="btn sub-row__quick-btn" data-action="decline">Decline</button>` : ""}
+            <button type="button" class="btn btn--danger sub-row__quick-btn" data-action="delete">Delete</button>
             <span class="sub-row__status sub-row__status--${sub.status}">${sub.status}</span>
             <button type="button" class="sub-row__chevron-btn" data-action="toggle" aria-label="Show details">
               <span class="sub-row__chevron" aria-hidden="true">▾</span>
@@ -301,7 +302,6 @@
           <p class="admin-submission__bio">${escapeHtml(sub.bio)}</p>
           <div class="admin-submission__actions">
             <button type="button" class="btn" data-action="email">Email</button>
-            <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
           </div>
           <form class="admin-compose" data-compose hidden>
             <div>
