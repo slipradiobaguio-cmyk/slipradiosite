@@ -105,6 +105,7 @@
     }
 
     const payload = {
+      website: form.elements.namedItem("website").value,
       email: form.elements.namedItem("email").value.trim(),
       djName: form.elements.namedItem("djName").value.trim(),
       showName: form.elements.namedItem("showName").value.trim(),

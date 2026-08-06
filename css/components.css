@@ -860,6 +860,14 @@ body.theme-dark .now-playing {
   display: none;
 }
 
+.dj-form__hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  left: -9999px;
+}
+
 .dj-form label,
 .dj-form legend {
   display: block;

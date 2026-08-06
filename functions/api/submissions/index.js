@@ -1,13 +1,18 @@
-import { jsonResponse, sanitizeText } from "../../_utils.js";
+import { jsonResponse, sanitizeText, getClientIp, hashIp } from "../../_utils.js";
 import { sendEmail } from "../../_email.js";
 
 const REQUIRED = ["email", "djName", "showName", "bio", "instagram", "phone", "location", "genres", "photoUrl", "slotId", "setup"];
 const SETUPS = ["digital", "vinyl", "hybrid"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const RATE_LIMIT_SECONDS = 600;
 
 export async function onRequestPost({ request, env }) {
   const payload = await request.json().catch(() => null);
   if (!payload) return jsonResponse({ error: "Invalid request." }, 400);
+
+  // honeypot: a hidden field real visitors never see or fill — a filled value
+  // means a bot filled every field blindly. Report success without doing anything
+  if (payload.website) return jsonResponse({ id: crypto.randomUUID() }, 201);
 
   for (const key of REQUIRED) {
     if (!payload[key] || !String(payload[key]).trim()) {
@@ -19,11 +24,19 @@ export async function onRequestPost({ request, env }) {
   if (!EMAIL_RE.test(email)) return jsonResponse({ error: "That email address doesn't look right." }, 400);
   if (!SETUPS.includes(payload.setup)) return jsonResponse({ error: "Invalid setup choice." }, 400);
 
+  const ipHash = await hashIp(getClientIp(request));
+  const rlKey = `rl:submission:${ipHash}`;
+  if (await env.CHAT_RL.get(rlKey)) {
+    return jsonResponse({ error: "Please wait a bit before submitting again." }, 429);
+  }
+
   const slotKey = `slot:${payload.slotId}`;
   const slot = await env.SUBMISSIONS.get(slotKey, "json");
   if (!slot || slot.status !== "open") {
     return jsonResponse({ error: "That timeslot is no longer available — please pick another." }, 409);
   }
+
+  await env.CHAT_RL.put(rlKey, "1", { expirationTtl: RATE_LIMIT_SECONDS });
 
   const id = crypto.randomUUID();
   const now = new Date().toISOString();

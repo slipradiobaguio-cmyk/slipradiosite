@@ -5,15 +5,28 @@ export function jsonResponse(body, status = 200) {
   });
 }
 
+// fixed-length digest compare so a match doesn't return faster than a
+// mismatch — guards the admin password and webhook secret against timing attacks
+export async function timingSafeEqual(a, b) {
+  const digest = async (s) =>
+    new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))));
+  const [da, db] = await Promise.all([digest(a), digest(b)]);
+  let diff = 0;
+  for (let i = 0; i < da.length; i++) diff |= da[i] ^ db[i];
+  return diff === 0 && a.length === b.length;
+}
+
 // leaves the route open if no password is configured yet, rather than locking everyone out
-export function requireBasicAuth(request, env) {
+export async function requireBasicAuth(request, env) {
   if (!env.ADMIN_PASSWORD) return null;
 
   const header = request.headers.get("Authorization") || "";
   const [scheme, encoded] = header.split(" ");
   if (scheme === "Basic" && encoded) {
     const [user, pass] = atob(encoded).split(":");
-    if (user === (env.ADMIN_USER || "admin") && pass === env.ADMIN_PASSWORD) return null;
+    const userOk = await timingSafeEqual(user || "", env.ADMIN_USER || "admin");
+    const passOk = await timingSafeEqual(pass || "", env.ADMIN_PASSWORD);
+    if (userOk && passOk) return null;
   }
 
   return new Response("Authentication required", {

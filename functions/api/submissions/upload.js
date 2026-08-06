@@ -2,6 +2,17 @@ import { jsonResponse } from "../../_utils.js";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
+// raster types only — no svg+xml: SVG can carry inline <script> and
+// functions/media/[key].js serves files back with this same content-type,
+// which would make an uploaded "photo" executable same-origin script
+const ALLOWED_TYPES = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "image/avif": "avif",
+};
+
 // flat key (no "/"): functions/media/[key].js only matches a single path
 // segment, a nested key would 404 when the site tries to serve it back
 export async function onRequestPost({ request, env }) {
@@ -10,14 +21,14 @@ export async function onRequestPost({ request, env }) {
   if (!file || typeof file === "string") {
     return jsonResponse({ error: "file is required" }, 400);
   }
-  if (!file.type || !file.type.startsWith("image/")) {
-    return jsonResponse({ error: "file must be an image" }, 400);
+  const ext = ALLOWED_TYPES[file.type];
+  if (!ext) {
+    return jsonResponse({ error: "file must be a JPEG, PNG, WebP, GIF, or AVIF image" }, 400);
   }
   if (file.size > MAX_BYTES) {
     return jsonResponse({ error: "file must be 10MB or smaller" }, 400);
   }
 
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
   const key = `sub-${crypto.randomUUID()}.${ext}`;
 
   await env.THUMBNAILS.put(key, await file.arrayBuffer(), {

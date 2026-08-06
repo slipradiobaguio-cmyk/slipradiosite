@@ -1,10 +1,11 @@
-import { jsonResponse } from "../_utils.js";
+import { jsonResponse, timingSafeEqual } from "../_utils.js";
 
 // AzuraCast calls this on connect/disconnect events so the site doesn't
 // depend on the now-playing API's is_live flag, which can lag or get stuck.
 export async function onRequestPost({ request, env }) {
   const url = new URL(request.url);
-  if (!env.WEBHOOK_SECRET || url.searchParams.get("key") !== env.WEBHOOK_SECRET) {
+  const key = url.searchParams.get("key") || "";
+  if (!env.WEBHOOK_SECRET || !(await timingSafeEqual(key, env.WEBHOOK_SECRET))) {
     return jsonResponse({ error: "unauthorized" }, 401);
   }
 
