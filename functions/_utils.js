@@ -55,3 +55,20 @@ export async function hashIp(ip) {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
   return Array.from(new Uint8Array(bytes)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+// treats verification as passed when TURNSTILE_SECRET_KEY isn't set yet —
+// same "not wired up yet" no-op pattern as sendEmail's missing RESEND_API_KEY
+export async function verifyTurnstile(token, env, ip) {
+  if (!env.TURNSTILE_SECRET_KEY) return true;
+  if (!token) return false;
+
+  const body = new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: token });
+  if (ip) body.set("remoteip", ip);
+
+  const res = await fetch(TURNSTILE_VERIFY_URL, { method: "POST", body }).catch(() => null);
+  if (!res || !res.ok) return false;
+  const data = await res.json().catch(() => null);
+  return Boolean(data && data.success);
+}

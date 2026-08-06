@@ -1,4 +1,4 @@
-import { jsonResponse, sanitizeText, getClientIp, hashIp } from "../../_utils.js";
+import { jsonResponse, sanitizeText, getClientIp, hashIp, verifyTurnstile } from "../../_utils.js";
 import { sendEmail } from "../../_email.js";
 
 const REQUIRED = ["email", "djName", "showName", "bio", "instagram", "phone", "location", "genres", "photoUrl", "slotId", "setup"];
@@ -14,6 +14,11 @@ export async function onRequestPost({ request, env }) {
   // means a bot filled every field blindly. Report success without doing anything
   if (payload.website) return jsonResponse({ id: crypto.randomUUID() }, 201);
 
+  const ip = getClientIp(request);
+  if (!(await verifyTurnstile(payload.turnstileToken, env, ip))) {
+    return jsonResponse({ error: "Verification failed — please try again." }, 400);
+  }
+
   for (const key of REQUIRED) {
     if (!payload[key] || !String(payload[key]).trim()) {
       return jsonResponse({ error: `${key} is required.` }, 400);
@@ -24,7 +29,7 @@ export async function onRequestPost({ request, env }) {
   if (!EMAIL_RE.test(email)) return jsonResponse({ error: "That email address doesn't look right." }, 400);
   if (!SETUPS.includes(payload.setup)) return jsonResponse({ error: "Invalid setup choice." }, 400);
 
-  const ipHash = await hashIp(getClientIp(request));
+  const ipHash = await hashIp(ip);
   const rlKey = `rl:submission:${ipHash}`;
   if (await env.CHAT_RL.get(rlKey)) {
     return jsonResponse({ error: "Please wait a bit before submitting again." }, 429);

@@ -104,8 +104,10 @@
       return;
     }
 
+    const turnstileInput = form.querySelector('[name="cf-turnstile-response"]');
     const payload = {
       website: form.elements.namedItem("website").value,
+      turnstileToken: turnstileInput ? turnstileInput.value : "",
       email: form.elements.namedItem("email").value.trim(),
       djName: form.elements.namedItem("djName").value.trim(),
       showName: form.elements.namedItem("showName").value.trim(),
@@ -144,6 +146,8 @@
       successEl.hidden = false;
     } catch (err) {
       setStatus(err.message || "Couldn't submit — try again.", "error");
+      // Turnstile tokens are single-use — get a fresh one queued up for the retry
+      if (window.turnstile) turnstile.reset();
       submitBtn.disabled = false;
     }
   });
