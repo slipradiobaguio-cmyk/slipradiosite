@@ -364,7 +364,7 @@
         });
         if (!res.ok) throw new Error(`status ${res.status}`);
         await loadSubmissions();
-        setStatus(`Marked "${sub ? sub.showName : id}" ${status}.`);
+        setStatus(`Marked "${sub ? sub.showName || sub.djName : id}" ${status}.`);
       } catch (err) {
         setStatus("Couldn't update submission — try again.", "error");
       }
@@ -372,7 +372,7 @@
     }
 
     if (action === "delete") {
-      if (!confirm(`Delete ${sub ? `"${sub.showName}"` : "this"} submission? This can't be undone.`)) return;
+      if (!confirm(`Delete ${sub ? `"${sub.showName || sub.djName}"` : "this"} submission? This can't be undone.`)) return;
       try {
         const res = await fetch(`/api/admin/submissions/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error(`delete ${res.status}`);

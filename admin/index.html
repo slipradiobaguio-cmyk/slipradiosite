@@ -18,7 +18,13 @@
     <a href="/" class="site-logo">
       <img src="/assets/icons/logo.png" alt="Slip Radio" class="site-logo__img">
     </a>
-    <span class="admin-status">Admin</span>
+    <div class="admin-header__right">
+      <a href="/" target="_blank" rel="noopener" class="admin-header__site-link">
+        Visit site
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-2M9 3h4v4M13 3 7 9"/></svg>
+      </a>
+      <span class="admin-status">Admin</span>
+    </div>
   </header>
 
   <main class="container admin-layout">
@@ -37,7 +43,7 @@
 
     <div class="admin-tabs" role="tablist">
       <button type="button" class="admin-tabs__btn" data-tab-button="list" role="tab" aria-selected="true" aria-label="List">
-        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+        <svg class="admin-tabs__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="2" cy="4" r="0.75" fill="currentColor" stroke="none"/><path d="M5.5 4h8.5"/><circle cx="2" cy="8" r="0.75" fill="currentColor" stroke="none"/><path d="M5.5 8h8.5"/><circle cx="2" cy="12" r="0.75" fill="currentColor" stroke="none"/><path d="M5.5 12h8.5"/></svg>
         <span class="admin-tabs__label">List</span>
       </button>
       <button type="button" class="admin-tabs__btn" data-tab-button="form" role="tab" aria-selected="false" aria-label="Add show">

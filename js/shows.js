@@ -41,7 +41,6 @@
     }
     if (!grid.classList.contains("shows-grid--home")) return;
     const progressTrack = grid.parentElement.querySelector("[data-hero-progress]");
-    const mq = window.matchMedia("(max-width: 767.98px)");
     const interval = 3000;
     let timer = null;
     let cards = [];
@@ -84,23 +83,15 @@
     function sync() {
       cards = Array.from(grid.querySelectorAll(".show-card"));
       buildSegments();
-      if (mq.matches) {
-        index = 0;
-        applyActive();
-        start();
-      } else {
-        stop();
-        cards.forEach((card) => card.classList.remove("is-active"));
-        segments.forEach((seg) => seg.classList.add("is-active"));
-      }
+      index = 0;
+      applyActive();
+      start();
     }
 
-    mq.addEventListener("change", sync);
     sync();
 
     window.__srHeroCarouselCleanup = () => {
       stop();
-      mq.removeEventListener("change", sync);
     };
   }
 

@@ -746,27 +746,52 @@ body.theme-dark .now-playing {
   }
 }
 
-/* shared button, used outside /admin too (the /program submission form) */
+/* shared button — single source used everywhere (admin and public pages
+   both load this, admin.css no longer keeps its own copy). Secondary
+   actions read as plain text with an underline on hover/focus, not a
+   bordered box — .btn--primary is the only one that keeps a filled shape,
+   reserved for the one main action on a given screen. */
 
 .btn {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.6rem 1rem;
-  border: 1px solid var(--color-text);
-  background: var(--color-bg);
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0.05rem;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: none;
+  color: var(--color-text);
   cursor: pointer;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  border-bottom-color: currentColor;
+}
+
+.btn--danger {
+  color: var(--color-live);
 }
 
 .btn--primary {
+  padding: 0.65rem 1.1rem;
   background: var(--color-text);
   color: var(--color-bg);
+  border-bottom: none;
+}
+
+.btn--primary:hover,
+.btn--primary:focus-visible {
+  border-bottom-color: transparent;
+  opacity: 0.82;
 }
 
 .btn:disabled {
   opacity: 0.4;
   cursor: default;
+  border-bottom-color: transparent;
 }
 
 /* /program — guest DJ submission form. Deliberately smaller/tighter than the
