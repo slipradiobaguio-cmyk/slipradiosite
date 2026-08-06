@@ -74,6 +74,9 @@
     delete: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M6 4V2.5h4V4M4 4l.6 9a1 1 0 001 .9h4.8a1 1 0 001-.9L12 4"/></svg>',
     kebab: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="8" cy="13" r="1.3"/></svg>',
     ban: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6"/><path d="M3.8 3.8l8.4 8.4"/></svg>',
+    check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5L13 5"/></svg>',
+    cross: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+    mail: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="9" rx="1"/><path d="M2 4l6 5 6-5"/></svg>',
   };
 
   const timeInput = form.elements.namedItem("time");
@@ -273,63 +276,101 @@
     };
   }
 
-  function submissionRowMarkup(sub) {
+  // shared between the desktop table's expand row and the mobile compact
+  // row's expand block — same content, two different wrappers around it
+  function submissionDetailMarkup(sub, draft) {
+    return `
+      <div class="admin-submission__meta">${escapeHtml(sub.email)} · ${escapeHtml(sub.phone)} · ${escapeHtml(sub.location)}</div>
+      <div class="admin-submission__meta">IG: ${escapeHtml(sub.instagram)} · Genres: ${escapeHtml(sub.genres)}</div>
+      ${sub.mixLink ? `<div class="admin-submission__meta"><a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">Mix link ↗</a></div>` : ""}
+      <p class="admin-submission__bio">${escapeHtml(sub.bio)}</p>
+      <form class="admin-compose" data-compose hidden>
+        <div>
+          <label>To</label>
+          <input type="text" value="${escapeHtml(sub.email)}" disabled>
+        </div>
+        <div>
+          <label>Subject</label>
+          <input type="text" name="subject" value="${escapeHtml(draft.subject)}" required>
+        </div>
+        <div>
+          <label>Message</label>
+          <textarea name="message" required>${escapeHtml(draft.message)}</textarea>
+        </div>
+        <p class="admin-compose__status" data-compose-status></p>
+        <div class="admin-compose__actions">
+          <button type="submit" class="btn btn--primary">Send</button>
+          <button type="button" class="btn" data-action="compose-cancel">Cancel</button>
+        </div>
+      </form>
+    `;
+  }
+
+  function submissionTableRowMarkup(sub) {
     const slotText = sub.slotDate ? `${sub.slotDate} · ${sub.slotStart}–${sub.slotEnd}` : "No timeslot";
     const photo = sub.photoUrl ? `style="background-image:url('${sub.photoUrl}')"` : "";
     const draft = composeDefaults(sub);
     return `
-      <div class="sub-row" data-id="${sub.id}">
-        <div class="sub-row__summary">
-          <button type="button" class="sub-row__toggle" data-action="toggle">
-            <span class="admin-thumb sub-row__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></span>
-            <span class="sub-row__name">${escapeHtml(sub.showName || sub.djName)}</span>
-            <span class="sub-row__meta">by ${escapeHtml(sub.djName)} · ${escapeHtml(slotText)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</span>
-          </button>
-          <div class="sub-row__quick">
-            ${sub.status !== "accepted" ? `<button type="button" class="btn sub-row__quick-btn" data-action="accept">Accept</button>` : ""}
-            ${sub.status !== "declined" ? `<button type="button" class="btn sub-row__quick-btn" data-action="decline">Decline</button>` : ""}
-            <button type="button" class="btn btn--danger sub-row__quick-btn" data-action="delete">Delete</button>
-            <span class="sub-row__status sub-row__status--${sub.status}">${sub.status}</span>
-            <button type="button" class="sub-row__chevron-btn" data-action="toggle" aria-label="Show details">
-              <span class="sub-row__chevron" aria-hidden="true">▾</span>
-            </button>
+      <tr data-id="${sub.id}">
+        <td><div class="admin-thumb admin-sub-table__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></div></td>
+        <td>
+          <div class="admin-sub-table__title">${escapeHtml(sub.showName || sub.djName)}</div>
+          <div class="admin-sub-table__byline">by ${escapeHtml(sub.djName)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</div>
+        </td>
+        <td>${escapeHtml(slotText)}</td>
+        <td class="admin-sub-table__status admin-sub-table__status--${sub.status}">${sub.status}</td>
+        <td>
+          <div class="admin-sub-table__actions">
+            <button type="button" class="icon-btn" data-action="toggle" aria-label="View details">${ICONS.view}</button>
+            ${sub.status !== "accepted" ? `<button type="button" class="icon-btn" data-action="accept" aria-label="Accept">${ICONS.check}</button>` : ""}
+            ${sub.status !== "declined" ? `<button type="button" class="icon-btn" data-action="decline" aria-label="Decline">${ICONS.cross}</button>` : ""}
+            <button type="button" class="icon-btn" data-action="email" aria-label="Email">${ICONS.mail}</button>
+            <button type="button" class="icon-btn icon-btn--danger" data-action="delete" aria-label="Delete">${ICONS.delete}</button>
           </div>
+        </td>
+      </tr>
+      <tr class="admin-sub-detail-row" data-id="${sub.id}" data-detail hidden>
+        <td colspan="5">${submissionDetailMarkup(sub, draft)}</td>
+      </tr>
+    `;
+  }
+
+  function submissionCompactRowMarkup(sub) {
+    const slotText = sub.slotDate ? `${sub.slotDate} · ${sub.slotStart}–${sub.slotEnd}` : "No timeslot";
+    const photo = sub.photoUrl ? `style="background-image:url('${sub.photoUrl}')"` : "";
+    const draft = composeDefaults(sub);
+    const name = escapeHtml(sub.showName || sub.djName);
+    return `
+      <div class="admin-compact-row" data-id="${sub.id}">
+        <div class="admin-thumb admin-compact-row__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></div>
+        <div class="admin-compact-row__body">
+          <div class="admin-compact-row__title">${name}</div>
+          <div class="admin-compact-row__meta admin-compact-row__meta--${sub.status}">${sub.status} · ${escapeHtml(slotText)}</div>
         </div>
-        <div class="sub-row__detail" data-detail hidden>
-          <div class="admin-submission__meta">${escapeHtml(sub.email)} · ${escapeHtml(sub.phone)} · ${escapeHtml(sub.location)}</div>
-          <div class="admin-submission__meta">IG: ${escapeHtml(sub.instagram)} · Genres: ${escapeHtml(sub.genres)}</div>
-          ${sub.mixLink ? `<div class="admin-submission__meta"><a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">Mix link ↗</a></div>` : ""}
-          <p class="admin-submission__bio">${escapeHtml(sub.bio)}</p>
-          <div class="admin-submission__actions">
-            <button type="button" class="btn" data-action="email">Email</button>
-          </div>
-          <form class="admin-compose" data-compose hidden>
-            <div>
-              <label>To</label>
-              <input type="text" value="${escapeHtml(sub.email)}" disabled>
-            </div>
-            <div>
-              <label>Subject</label>
-              <input type="text" name="subject" value="${escapeHtml(draft.subject)}" required>
-            </div>
-            <div>
-              <label>Message</label>
-              <textarea name="message" required>${escapeHtml(draft.message)}</textarea>
-            </div>
-            <p class="admin-compose__status" data-compose-status></p>
-            <div class="admin-compose__actions">
-              <button type="submit" class="btn btn--primary">Send</button>
-              <button type="button" class="btn" data-action="compose-cancel">Cancel</button>
-            </div>
-          </form>
+        <button type="button" class="kebab-btn" data-action="menu-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Show actions for ${name}">${ICONS.kebab}</button>
+        <div class="kebab-menu" hidden>
+          <button type="button" class="kebab-menu__item" data-action="toggle">View details</button>
+          ${sub.status !== "accepted" ? `<button type="button" class="kebab-menu__item" data-action="accept">Accept</button>` : ""}
+          ${sub.status !== "declined" ? `<button type="button" class="kebab-menu__item" data-action="decline">Decline</button>` : ""}
+          <button type="button" class="kebab-menu__item" data-action="email">Email</button>
+          <button type="button" class="kebab-menu__item kebab-menu__item--danger" data-action="delete">Delete</button>
         </div>
       </div>
+      <div class="admin-compact-detail" data-id="${sub.id}" data-detail hidden>${submissionDetailMarkup(sub, draft)}</div>
     `;
   }
 
   function renderSubmissions() {
     submissionsEmpty.hidden = cachedSubmissions.length > 0;
-    submissionsList.innerHTML = cachedSubmissions.map(submissionRowMarkup).join("");
+    submissionsList.innerHTML = cachedSubmissions.length
+      ? `
+        <table class="admin-sub-table">
+          <thead><tr><th></th><th>Show</th><th>Slot</th><th>Status</th><th></th></tr></thead>
+          <tbody>${cachedSubmissions.map(submissionTableRowMarkup).join("")}</tbody>
+        </table>
+        <div class="admin-compact-list">${cachedSubmissions.map(submissionCompactRowMarkup).join("")}</div>
+      `
+      : "";
     const newCount = cachedSubmissions.filter((s) => s.status === "new").length;
     if (submissionsBadge) {
       submissionsBadge.textContent = String(newCount);
@@ -352,11 +393,34 @@
     const sub = cachedSubmissions.find((s) => s.id === id);
     const action = button.dataset.action;
 
+    if (action === "menu-toggle") {
+      const menu = button.nextElementSibling;
+      const willOpen = menu.hidden;
+      closeAllMenus();
+      menu.hidden = !willOpen;
+      button.setAttribute("aria-expanded", String(willOpen));
+      return;
+    }
+
     if (action === "toggle") {
-      const detail = row.querySelector("[data-detail]");
-      const willOpen = detail.hidden;
-      detail.hidden = !willOpen;
-      row.classList.toggle("sub-row--open", willOpen);
+      const details = submissionsList.querySelectorAll(`[data-id="${id}"][data-detail]`);
+      const willOpen = details[0] ? details[0].hidden : true;
+      details.forEach((d) => { d.hidden = !willOpen; });
+      closeAllMenus();
+      return;
+    }
+
+    if (action === "email") {
+      const details = submissionsList.querySelectorAll(`[data-id="${id}"][data-detail]`);
+      details.forEach((d) => { d.hidden = false; });
+      closeAllMenus();
+      details.forEach((d) => {
+        const panel = d.querySelector("[data-compose]");
+        if (!panel) return;
+        panel.hidden = false;
+        const subject = panel.querySelector("input[name='subject']");
+        if (subject) subject.focus();
+      });
       return;
     }
 
@@ -390,15 +454,8 @@
       return;
     }
 
-    if (action === "email") {
-      const panel = row.querySelector("[data-compose]");
-      panel.hidden = !panel.hidden;
-      if (!panel.hidden) panel.querySelector("input[name='subject']").focus();
-      return;
-    }
-
     if (action === "compose-cancel") {
-      row.querySelector("[data-compose]").hidden = true;
+      button.closest("[data-compose]").hidden = true;
     }
   });
 
@@ -407,8 +464,8 @@
     if (!form) return;
     e.preventDefault();
 
-    const row = form.closest("[data-id]");
-    const sub = cachedSubmissions.find((s) => s.id === row.dataset.id);
+    const wrapper = form.closest("[data-id]");
+    const sub = cachedSubmissions.find((s) => s.id === wrapper.dataset.id);
     const composeStatus = form.querySelector("[data-compose-status]");
     const sendBtn = form.querySelector("button[type='submit']");
     const subject = form.elements.namedItem("subject").value.trim();

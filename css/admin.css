@@ -578,147 +578,96 @@
   display: none;
 }
 
-/* submissions review — a flat list of collapsed rows, one line each, that
-   expand in place on click. No card boxes: matches the plain-list feel of
-   the Add-show form rather than introducing a new boxed component. */
+/* submissions review — same table (desktop) / compact-row-with-kebab-menu
+   (mobile) pattern as the Shows list above, so status (a column, plain
+   colored text) never reads as one more button in a row of buttons. */
 
 .admin-submissions {
   margin-top: var(--space-sm);
 }
 
-.sub-row {
+.admin-sub-table {
+  display: none;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.admin-sub-table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  color: var(--color-muted);
+  padding: 0.5rem 0.6rem;
   border-bottom: 1px solid var(--color-border);
 }
 
-.sub-row__summary {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding-block: 0.5rem;
+.admin-sub-table td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
 }
 
-.sub-row__toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: none;
-  padding: 0.15rem 0;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  color: var(--color-text);
+.admin-sub-detail-row td {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 0.6rem 1rem;
 }
 
-.sub-row__thumb {
+.admin-sub-table__thumb {
   width: 34px;
   height: 34px;
-  flex-shrink: 0;
 }
 
-.sub-row__name {
+.admin-sub-table__title {
   font-weight: 600;
-  font-size: 0.85rem;
-  flex-shrink: 0;
 }
 
-.sub-row__meta {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.75rem;
+.admin-sub-table__byline {
+  font-size: 0.72rem;
   color: var(--color-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-top: 0.1rem;
+}
+
+.admin-sub-table__status {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
   white-space: nowrap;
 }
 
-/* the two decision actions get real padding, unlike the plain-text .btn
-   default elsewhere — this is the one place a bigger hit target matters
-   more than staying flush with the "no boxes" treatment */
-.sub-row__quick {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-}
-
-.sub-row__quick-btn {
-  padding: 0.35rem 0.55rem;
-}
-
-.sub-row__status {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.15rem 0.4rem;
-  border: 1px solid var(--color-border);
-  color: var(--color-muted);
-  flex-shrink: 0;
-}
-
-.sub-row__status--new {
-  border-color: var(--color-live);
+.admin-sub-table__status--new {
   color: var(--color-live);
 }
 
-.sub-row__chevron-btn {
+.admin-sub-table__actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  padding: 0.3rem;
-  cursor: pointer;
-  color: var(--color-muted);
-}
-
-.sub-row__chevron {
-  display: block;
-  transition: transform 0.15s ease;
-}
-
-.sub-row--open .sub-row__chevron {
-  transform: rotate(180deg);
-}
-
-.sub-row__detail {
-  padding: 0 0 var(--space-sm) 2.9rem;
-  display: flex;
-  flex-direction: column;
   gap: 0.3rem;
+  justify-content: flex-end;
 }
 
-.sub-row__detail[hidden] {
+/* .admin-compact-list is already hidden at 768px+ by the shared rule above
+   (Shows list) — same class, applies here for free */
+@media (min-width: 768px) {
+  .admin-sub-table {
+    display: table;
+  }
+}
+
+.admin-compact-row__meta--new {
+  color: var(--color-live);
+}
+
+.admin-compact-detail {
+  padding: 0 1rem 1rem 3.2rem;
+}
+
+.admin-compact-detail[hidden] {
   display: none;
-}
-
-@media (max-width: 767.98px) {
-  .sub-row__summary {
-    flex-wrap: wrap;
-  }
-
-  .sub-row__toggle {
-    flex-basis: 100%;
-    flex-wrap: wrap;
-  }
-
-  .sub-row__quick {
-    flex-basis: 100%;
-    padding-left: 2.7rem;
-  }
-
-  .sub-row__meta {
-    flex-basis: 100%;
-    white-space: normal;
-    padding-left: 2.7rem;
-  }
-
-  .sub-row__detail {
-    padding-left: 0;
-  }
 }
 
 .admin-submission__meta {
