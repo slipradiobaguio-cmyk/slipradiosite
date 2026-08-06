@@ -11,6 +11,24 @@
     return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
   }
 
+  // show.time is free text like "16:00 - 18:00" from the admin form —
+  // convert for display only
+  function fmtTime(time) {
+    if (!time) return "";
+    const match = time.match(/(\d{1,2}):(\d{2})\s*[-–—]\s*(\d{1,2}):(\d{2})/);
+    if (!match) return time;
+    const [, sh, sm, eh, em] = match;
+    const to12 = (hStr, mStr) => {
+      const h = Number(hStr);
+      const m = Number(mStr);
+      const period = h < 12 ? "AM" : "PM";
+      let h12 = h % 12;
+      if (h12 === 0) h12 = 12;
+      return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, "0")} ${period}`;
+    };
+    return `${to12(sh, sm)} – ${to12(eh, em)}`;
+  }
+
   async function load() {
     root.setAttribute("aria-busy", "true");
     try {
@@ -31,7 +49,7 @@
         : "";
       root.querySelector("[data-field='title']").textContent = show.title || "";
       root.querySelector("[data-field='guestName']").textContent = show.guestName || "";
-      root.querySelector("[data-field='dateTime']").textContent = [fmtDate(show.date), show.time]
+      root.querySelector("[data-field='dateTime']").textContent = [fmtDate(show.date), fmtTime(show.time)]
         .filter(Boolean)
         .join(" · ");
       root.querySelector("[data-field='genres']").textContent = show.genres || "";

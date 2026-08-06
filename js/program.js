@@ -41,10 +41,21 @@
     else statusEl.removeAttribute("data-tone");
   }
 
+  function formatHour12(hStr, mStr) {
+    const h = Number(hStr);
+    const m = Number(mStr);
+    const period = h < 12 ? "AM" : "PM";
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, "0")} ${period}`;
+  }
+
   function formatSlot(slot) {
     const date = new Date(`${slot.date}T00:00:00`);
     const dateLabel = date.toLocaleDateString([], { month: "short", day: "numeric" });
-    return `${dateLabel} · ${slot.startTime}–${slot.endTime}`;
+    const [sh, sm] = slot.startTime.split(":");
+    const [eh, em] = slot.endTime.split(":");
+    return `${dateLabel} · ${formatHour12(sh, sm)} – ${formatHour12(eh, em)}`;
   }
 
   async function loadSlots() {

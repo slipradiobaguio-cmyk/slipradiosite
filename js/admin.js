@@ -77,7 +77,6 @@
     check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5L13 5"/></svg>',
     cross: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
     mail: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="1.5" y="3.5" width="13" height="9" rx="1"/><path d="M2 4l6 5 6-5"/></svg>',
-    release: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="9" height="6" rx="1"/><path d="M5.5 7.5V5a2.5 2.5 0 0 1 4.7-1.2"/></svg>',
   };
 
   const timeInput = form.elements.namedItem("time");
@@ -143,6 +142,33 @@
     return local.toISOString().slice(0, 10);
   }
 
+  // 24h "HH:MM" -> "6 PM" / "6:30 PM" — used for the Schedule tab's slot
+  // times, which are already split start/end fields rather than free text
+  function formatHour12(hStr, mStr) {
+    const h = Number(hStr);
+    const m = Number(mStr);
+    const period = h < 12 ? "AM" : "PM";
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, "0")} ${period}`;
+  }
+
+  function formatSlotTimeRange(startTime, endTime) {
+    const [sh, sm] = startTime.split(":");
+    const [eh, em] = endTime.split(":");
+    return `${formatHour12(sh, sm)} – ${formatHour12(eh, em)}`;
+  }
+
+  // show.time is free text like "16:00 - 18:00" from the Add Show form —
+  // convert for display only, leave the stored value alone
+  function formatShowTimeLabel(time) {
+    if (!time) return "";
+    const match = time.match(/(\d{1,2}):(\d{2})\s*[-–—]\s*(\d{1,2}):(\d{2})/);
+    if (!match) return time;
+    const [, sh, sm, eh, em] = match;
+    return formatSlotTimeRange(`${sh}:${sm}`, `${eh}:${em}`);
+  }
+
   function scheduleRowMarkup(show) {
     const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
     const isOnAir = show.slug === onAirSlug;
@@ -151,7 +177,7 @@
         <td><div class="admin-thumb admin-schedule__thumb${show.heroImage ? "" : " admin-thumb--empty"}" ${thumb}></div></td>
         <td class="admin-schedule__title">${show.title}</td>
         <td>${show.guestName || ""}</td>
-        <td>${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}</td>
+        <td>${show.date || "no date"}${show.time ? ` · ${formatShowTimeLabel(show.time)}` : ""}</td>
         <td class="admin-schedule__status">${isOnAir ? "● On air" : ""}</td>
         <td>
           <div class="admin-schedule__actions">
@@ -168,7 +194,7 @@
   function compactRowMarkup(show) {
     const thumb = show.heroImage ? `style="background-image:url('${show.heroImage}')"` : "";
     const isOnAir = show.slug === onAirSlug;
-    const meta = `${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${show.time}` : ""}`;
+    const meta = `${show.guestName || ""} · ${show.date || "no date"}${show.time ? ` · ${formatShowTimeLabel(show.time)}` : ""}`;
     return `
       <div class="admin-compact-row" data-slug="${show.slug}">
         <div class="admin-thumb admin-compact-row__thumb${show.heroImage ? "" : " admin-thumb--empty"}" ${thumb}></div>
@@ -515,10 +541,9 @@
     return `
       <div class="admin-slot" data-id="${slot.id}">
         <span class="admin-slot__tag admin-slot__tag--${slot.status}">${booked ? "Booked" : "Open"}</span>
-        <span class="admin-slot__time">${slot.startTime}–${slot.endTime}</span>
+        <span class="admin-slot__time">${formatSlotTimeRange(slot.startTime, slot.endTime)}</span>
         <span class="admin-slot__who">${booked && reservedSub ? escapeHtml(reservedSub.djName) : ""}</span>
         <span class="admin-slot__actions">
-          ${booked ? `<button type="button" class="icon-btn" data-action="release" title="Release" aria-label="Release timeslot">${ICONS.release}</button>` : ""}
           <button type="button" class="icon-btn icon-btn--danger" data-action="delete-slot" title="Delete" aria-label="Delete timeslot">${ICONS.delete}</button>
         </span>
       </div>
@@ -591,19 +616,6 @@
     if (!button) return;
     const row = button.closest("[data-id]");
     const id = row.dataset.id;
-
-    if (button.dataset.action === "release") {
-      if (!confirm("Cancel this DJ's booking and reopen the timeslot?")) return;
-      try {
-        const res = await fetch(`/api/admin/slots/${id}`, { method: "PATCH" });
-        if (!res.ok) throw new Error(`release ${res.status}`);
-        await loadSlots();
-        setStatus("Timeslot released.");
-      } catch (err) {
-        setStatus("Couldn't release timeslot — try again.", "error");
-      }
-      return;
-    }
 
     if (button.dataset.action === "delete-slot") {
       if (!confirm("Delete this timeslot?")) return;
