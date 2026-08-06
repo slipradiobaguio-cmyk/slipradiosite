@@ -20,12 +20,27 @@
     turnstileBlocked = true;
   };
 
+  // the widget is data-execution="execute" (see program.html) — it does
+  // nothing, and shows nothing, until this fires. Kept out of the page-load
+  // path on purpose so visitors don't see a verification box while they're
+  // still filling out the form
+  let turnstileExecuted = false;
+  function executeTurnstile() {
+    if (turnstileExecuted) return;
+    const widget = form.querySelector("[data-dj-turnstile]");
+    if (window.turnstile && widget) {
+      turnstile.execute(widget);
+      turnstileExecuted = true;
+    }
+  }
+
   function waitForTurnstileToken(timeoutMs) {
     const input = form.querySelector('[name="cf-turnstile-response"]');
     if (input && input.value) return Promise.resolve(input.value);
     return new Promise((resolve) => {
       const start = Date.now();
       const poll = () => {
+        executeTurnstile();
         const el = form.querySelector('[name="cf-turnstile-response"]');
         if (el && el.value) return resolve(el.value);
         if (turnstileBlocked || Date.now() - start >= timeoutMs) return resolve("");
@@ -201,8 +216,9 @@
       successEl.hidden = false;
     } catch (err) {
       setStatus(err.message || "Couldn't submit — try again.", "error");
-      // Turnstile tokens are single-use — get a fresh one queued up for the retry
+      // Turnstile tokens are single-use — reset so the next submit re-executes fresh
       if (window.turnstile) turnstile.reset();
+      turnstileExecuted = false;
       submitBtn.disabled = false;
     }
   });
