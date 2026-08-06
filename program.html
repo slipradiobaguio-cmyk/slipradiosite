@@ -47,101 +47,108 @@
   </div>
 
   <main>
-    <section class="page-section page-section--tight container dj-intro">
-      <h1 class="page-title">Play a guest DJ set at slip radio</h1>
-      <p class="dj-intro__season">Season 1 — August 9 to November 8</p>
-      <div class="dj-intro__copy">
-        <p>Thanks for your interest in playing a DJ set at slip radio! We prioritize live DJ sets this season — no pre-recorded sets. We'll send our complete studio address in Baguio once you submit this form.</p>
-        <p>As an emerging community radio, we currently can't offer compensation or talent fees for guest DJs, but we'll send you a high-quality copy of your recorded set to use, edit, and upload.</p>
-        <p>Picking a timeslot below reserves it for you automatically. If your preferred date and time aren't listed, it's already been taken by another DJ — check back, as we open new timeslots throughout the season.</p>
-        <p>Questions or problems with this form? DM us on <a href="#">Instagram (@slip.radio)</a> or email <a href="mailto:program.slipradio@gmail.com">program.slipradio@gmail.com</a>.</p>
-      </div>
-    </section>
-
-    <section class="page-section page-section--tight container">
-      <form class="dj-form" data-dj-form>
-        <div>
-          <label for="dj-email">Email</label>
-          <input type="email" id="dj-email" name="email" required>
-        </div>
-
-        <div>
-          <label for="dj-name">DJ name</label>
-          <input type="text" id="dj-name" name="djName" required>
-        </div>
-
-        <div>
-          <label for="dj-bio">Short artist bio</label>
-          <p class="dj-form__hint">50 to 100 words.</p>
-          <textarea id="dj-bio" name="bio" required></textarea>
-        </div>
-
-        <div class="dj-form__row dj-form__row--split">
-          <div>
-            <label for="dj-instagram">Instagram handle</label>
-            <input type="text" id="dj-instagram" name="instagram" placeholder="e.g. @slip.radio" required>
+    <section class="page-section container">
+      <div class="dj-layout">
+        <div class="dj-layout__intro">
+          <p class="dj-form__hint">Season 1 · Aug 9–Nov 8</p>
+          <h1 class="dj-heading">Play a guest DJ set</h1>
+          <div class="dj-intro__copy">
+            <p>We prioritize live DJ sets this season — no pre-recorded sets. We'll send our complete studio address in Baguio once you submit this form.</p>
+            <p>As an emerging community radio, we currently can't offer compensation or talent fees, but we'll send you a high-quality copy of your recorded set to use, edit, and upload.</p>
+            <p>Picking a timeslot reserves it automatically. If your preferred date and time aren't listed, it's already been taken — check back, as we open new timeslots throughout the season.</p>
           </div>
-          <div>
-            <label for="dj-phone">Contact number</label>
-            <input type="tel" id="dj-phone" name="phone" required>
+          <p class="dj-intro__contact">Questions? DM <a href="#">@slip.radio</a> or email <a href="mailto:program.slipradio@gmail.com">program.slipradio@gmail.com</a>.</p>
+        </div>
+
+        <div class="dj-layout__form">
+          <form class="dj-form" data-dj-form>
+            <div class="dj-form__row dj-form__row--split">
+              <div>
+                <label for="dj-email">Email</label>
+                <input type="email" id="dj-email" name="email" required>
+              </div>
+              <div>
+                <label for="dj-name">DJ name</label>
+                <input type="text" id="dj-name" name="djName" required>
+              </div>
+            </div>
+
+            <div>
+              <label for="dj-show">Show name</label>
+              <p class="dj-form__hint">What should we call your set on the website?</p>
+              <input type="text" id="dj-show" name="showName" placeholder="e.g. Late Night Frequencies" required>
+            </div>
+
+            <div>
+              <label for="dj-bio">Short artist bio</label>
+              <p class="dj-form__hint">50 to 100 words.</p>
+              <textarea id="dj-bio" name="bio" required></textarea>
+            </div>
+
+            <div class="dj-form__row dj-form__row--split">
+              <div>
+                <label for="dj-instagram">Instagram handle</label>
+                <input type="text" id="dj-instagram" name="instagram" placeholder="e.g. @slip.radio" required>
+              </div>
+              <div>
+                <label for="dj-phone">Contact number</label>
+                <input type="tel" id="dj-phone" name="phone" required>
+              </div>
+            </div>
+
+            <div class="dj-form__row dj-form__row--split">
+              <div>
+                <label for="dj-location">Where are you based?</label>
+                <p class="dj-form__hint">e.g. Baguio City, Bacolod, etc.</p>
+                <input type="text" id="dj-location" name="location" required>
+              </div>
+              <div>
+                <label for="dj-genres">Genres</label>
+                <p class="dj-form__hint">Up to three (e.g. techno, hip-hop, house).</p>
+                <input type="text" id="dj-genres" name="genres" required>
+              </div>
+            </div>
+
+            <div>
+              <label for="dj-mix">Link to mixes or past work</label>
+              <input type="url" id="dj-mix" name="mixLink" placeholder="https://">
+            </div>
+
+            <div>
+              <label>DJ profile photo</label>
+              <p class="dj-form__hint">High-resolution, under 10MB.</p>
+              <div class="dj-form__photo-preview" data-field="photoPreview"></div>
+              <input type="file" accept="image/*" data-photo-input required>
+            </div>
+
+            <div class="dj-form__row dj-form__row--split">
+              <div>
+                <label for="dj-slot">Preferred date and time</label>
+                <select id="dj-slot" name="slotId" data-slot-select required>
+                  <option value="">Loading available timeslots…</option>
+                </select>
+              </div>
+              <div>
+                <label for="dj-setup">Preferred set-up</label>
+                <select id="dj-setup" name="setup" required>
+                  <option value="">Choose…</option>
+                  <option value="digital">Digital — XDJ-1000MK2 (2x) + XONE:96</option>
+                  <option value="vinyl">Vinyl — AT-LP120X (2x) + XONE:96</option>
+                  <option value="hybrid">Hybrid — Digital + Vinyl</option>
+                </select>
+              </div>
+            </div>
+
+            <p class="dj-form__status" data-dj-status></p>
+
+            <button type="submit" class="btn btn--primary" data-dj-submit>Submit</button>
+          </form>
+
+          <div class="dj-form__success" data-dj-success hidden>
+            <h2 class="dj-heading">You're on the schedule</h2>
+            <p>We've reserved your timeslot and sent a confirmation to your email. We'll follow up with studio details soon.</p>
           </div>
         </div>
-
-        <div>
-          <label for="dj-location">Where are you based?</label>
-          <p class="dj-form__hint">e.g. Baguio City, Bacolod, Metro Manila, etc.</p>
-          <input type="text" id="dj-location" name="location" required>
-        </div>
-
-        <div>
-          <label for="dj-genres">What genres do you intend to play?</label>
-          <p class="dj-form__hint">Up to three, to feature on the website (e.g. techno, hip-hop, novelty, house).</p>
-          <input type="text" id="dj-genres" name="genres" required>
-        </div>
-
-        <div>
-          <label for="dj-mix">Link to mixes or past work</label>
-          <input type="url" id="dj-mix" name="mixLink" placeholder="https://">
-        </div>
-
-        <div>
-          <label>DJ profile photo</label>
-          <p class="dj-form__hint">High-resolution, under 10MB.</p>
-          <div class="dj-form__photo-preview" data-field="photoPreview"></div>
-          <input type="file" accept="image/*" data-photo-input required>
-        </div>
-
-        <div>
-          <label for="dj-slot">Preferred date and time</label>
-          <select id="dj-slot" name="slotId" data-slot-select required>
-            <option value="">Loading available timeslots…</option>
-          </select>
-        </div>
-
-        <fieldset class="dj-form__setup">
-          <legend>Preferred set-up</legend>
-          <label class="dj-form__radio">
-            <input type="radio" name="setup" value="digital" required>
-            Digital — XDJ-1000MK2 (2x) + XONE:96 Mixer
-          </label>
-          <label class="dj-form__radio">
-            <input type="radio" name="setup" value="vinyl">
-            Vinyl — Audio-Technica AT-LP120X (2x) + XONE:96 Mixer (you may bring your own headshell)
-          </label>
-          <label class="dj-form__radio">
-            <input type="radio" name="setup" value="hybrid">
-            Hybrid — Digital + Vinyl
-          </label>
-        </fieldset>
-
-        <p class="dj-form__status" data-dj-status></p>
-
-        <button type="submit" class="btn btn--primary" data-dj-submit>Submit</button>
-      </form>
-
-      <div class="dj-form__success" data-dj-success hidden>
-        <h2 class="page-title">You're on the schedule</h2>
-        <p>We've reserved your timeslot and sent a confirmation to your email. We'll follow up with studio details soon.</p>
       </div>
     </section>
   </main>

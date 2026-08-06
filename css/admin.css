@@ -339,6 +339,10 @@
   .admin-form__row--split {
     grid-template-columns: 1fr 1fr;
   }
+
+  .admin-form__row--triple {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .admin-form__thumb-preview {
@@ -520,56 +524,101 @@
   border-radius: 999px;
 }
 
-/* submissions review — one card per applicant, deliberately denser than the
-   public site's show cards since this is a working list, not a display grid */
+/* submissions review — a flat list of collapsed rows, one line each, that
+   expand in place on click. No card boxes: matches the plain-list feel of
+   the Add-show form rather than introducing a new boxed component. */
 
 .admin-submissions {
-  display: grid;
-  gap: var(--space-sm);
   margin-top: var(--space-sm);
 }
 
-.admin-submission {
+.sub-row {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sub-row__summary {
   display: flex;
-  gap: var(--space-sm);
-  border: 1px solid var(--color-border);
-  padding: var(--space-sm);
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0.65rem 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
 }
 
-.admin-submission__thumb {
-  width: 80px;
-  height: 80px;
+.sub-row__thumb {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
 }
 
-.admin-submission__body {
+.sub-row__name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.sub-row__meta {
   flex: 1;
   min-width: 0;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-row__status {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.sub-row__status--new {
+  border-color: var(--color-live);
+  color: var(--color-live);
+}
+
+.sub-row__chevron {
+  color: var(--color-muted);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.sub-row--open .sub-row__chevron {
+  transform: rotate(180deg);
+}
+
+.sub-row__detail {
+  padding: 0 0 var(--space-sm) 2.9rem;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 
-.admin-submission__head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
+@media (max-width: 767.98px) {
+  .sub-row__summary {
+    flex-wrap: wrap;
+  }
 
-.admin-submission__name {
-  font-weight: 600;
-}
+  .sub-row__meta {
+    order: 3;
+    flex-basis: 100%;
+    white-space: normal;
+  }
 
-.admin-submission__status {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-muted);
-}
-
-.admin-submission__status--accepted {
-  color: var(--color-live);
+  .sub-row__detail {
+    padding-left: 0;
+  }
 }
 
 .admin-submission__meta {
@@ -590,15 +639,56 @@
   margin-top: 0.4rem;
 }
 
-@media (max-width: 767.98px) {
-  .admin-submission {
-    flex-direction: column;
-  }
+.admin-compose {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border);
+}
 
-  .admin-submission__thumb {
-    width: 100%;
-    height: 140px;
-  }
+.admin-compose label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  margin-bottom: 0.25rem;
+}
+
+.admin-compose input,
+.admin-compose textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem;
+  background: var(--color-bg);
+}
+
+.admin-compose input:disabled {
+  color: var(--color-muted);
+  background: var(--color-surface-alt);
+}
+
+.admin-compose textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.admin-compose__status {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  min-height: 1em;
+}
+
+.admin-compose__status[data-tone="error"] {
+  color: var(--color-live);
+}
+
+.admin-compose__actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 /* schedule/slots manager — the "calendar" the public /program form's

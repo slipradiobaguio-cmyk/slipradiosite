@@ -8,7 +8,9 @@ export async function onRequestPost({ request, env }) {
   }
 
   const result = await sendEmail({ to, subject, text: message, replyTo: env.ADMIN_NOTIFY_EMAIL }, env);
-  if (!result.sent) return jsonResponse({ error: result.reason }, 502);
+  // 422, not 502/5xx — Cloudflare's edge intercepts 5xx responses from Functions
+  // and replaces the body with its own generic error page, hiding the real reason
+  if (!result.sent) return jsonResponse({ error: result.reason }, 422);
 
   return jsonResponse({ sent: true });
 }

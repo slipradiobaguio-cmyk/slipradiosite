@@ -769,32 +769,66 @@ body.theme-dark .now-playing {
   cursor: default;
 }
 
-/* /program — guest DJ submission form */
+/* /program — guest DJ submission form. Deliberately smaller/tighter than the
+   generic .page-title scale — a form page reads better dense than heroic. */
 
-.dj-intro__season {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-muted);
-  margin-top: var(--space-xs);
+.dj-layout {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .dj-layout {
+    grid-template-columns: 240px 1fr;
+    align-items: start;
+  }
+
+  .dj-layout__intro {
+    position: sticky;
+    top: var(--space-md);
+  }
+}
+
+.dj-heading {
+  font-size: 1.4rem;
+  line-height: 1.15;
+  margin: 0.3rem 0 0;
+}
+
+@media (min-width: 1440px) {
+  .dj-heading {
+    font-size: 1.65rem;
+  }
 }
 
 .dj-intro__copy {
-  max-width: 60ch;
+  max-width: 42ch;
   margin-top: var(--space-md);
   display: grid;
   gap: var(--space-sm);
 }
 
-.dj-intro__copy a {
+.dj-intro__copy p {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--color-muted-strong);
+}
+
+.dj-intro__copy a,
+.dj-intro__contact a {
   text-decoration: underline;
+}
+
+.dj-intro__contact {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  margin-top: var(--space-md);
 }
 
 .dj-form {
   display: grid;
   gap: var(--space-sm);
-  max-width: 640px;
+  max-width: 560px;
 }
 
 .dj-form label,
@@ -822,9 +856,10 @@ body.theme-dark .now-playing {
 .dj-form textarea {
   width: 100%;
   border: 1px solid var(--color-border);
-  padding: 0.6rem;
+  padding: 0.55rem 0.6rem;
   background: var(--color-bg);
   color: var(--color-text);
+  font-size: 0.85rem;
 }
 
 .dj-form textarea {
@@ -851,29 +886,6 @@ body.theme-dark .now-playing {
   background-position: center;
   border: 1px solid var(--color-border);
   margin-bottom: var(--space-xs);
-}
-
-.dj-form__setup {
-  border: 1px solid var(--color-border);
-  padding: var(--space-sm);
-  display: grid;
-  gap: var(--space-xs);
-}
-
-.dj-form__radio {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  text-transform: none;
-  letter-spacing: normal;
-  color: var(--color-text);
-  cursor: pointer;
-}
-
-.dj-form__radio input {
-  margin-top: 0.3rem;
 }
 
 .dj-form__status {

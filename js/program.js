@@ -104,10 +104,10 @@
       return;
     }
 
-    const setupInput = form.querySelector("input[name='setup']:checked");
     const payload = {
       email: form.elements.namedItem("email").value.trim(),
       djName: form.elements.namedItem("djName").value.trim(),
+      showName: form.elements.namedItem("showName").value.trim(),
       bio: form.elements.namedItem("bio").value.trim(),
       instagram: form.elements.namedItem("instagram").value.trim(),
       phone: form.elements.namedItem("phone").value.trim(),
@@ -116,7 +116,7 @@
       mixLink: form.elements.namedItem("mixLink").value.trim(),
       photoUrl: form.dataset.photoUrl,
       slotId: form.elements.namedItem("slotId").value,
-      setup: setupInput ? setupInput.value : "",
+      setup: form.elements.namedItem("setup").value,
     };
 
     if (!payload.slotId) {

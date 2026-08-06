@@ -135,20 +135,18 @@
     <section data-tab-panel="schedule" hidden>
       <h2 data-slot-form-title>Add a timeslot</h2>
       <form class="admin-form admin-form--inline" data-slot-form>
-        <div class="admin-form__row admin-form__row--split">
+        <div class="admin-form__row admin-form__row--triple">
           <div>
             <label for="slot-date">Date</label>
             <input type="date" id="slot-date" name="date" required>
           </div>
-          <div class="admin-form__row admin-form__row--split">
-            <div>
-              <label for="slot-start">Start</label>
-              <input type="time" id="slot-start" name="startTime" required>
-            </div>
-            <div>
-              <label for="slot-end">End</label>
-              <input type="time" id="slot-end" name="endTime" required>
-            </div>
+          <div>
+            <label for="slot-start">Start</label>
+            <input type="time" id="slot-start" name="startTime" required>
+          </div>
+          <div>
+            <label for="slot-end">End</label>
+            <input type="time" id="slot-end" name="endTime" required>
           </div>
         </div>
         <div class="admin-list__actions">

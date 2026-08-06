@@ -229,18 +229,19 @@
 
   const SETUP_LABELS = { digital: "Digital", vinyl: "Vinyl", hybrid: "Hybrid" };
 
-  function submissionCardMarkup(sub) {
+  function submissionRowMarkup(sub) {
     const slotText = sub.slotDate ? `${sub.slotDate} · ${sub.slotStart}–${sub.slotEnd}` : "No timeslot";
     const photo = sub.photoUrl ? `style="background-image:url('${sub.photoUrl}')"` : "";
     return `
-      <div class="admin-submission" data-id="${sub.id}">
-        <div class="admin-thumb admin-submission__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></div>
-        <div class="admin-submission__body">
-          <div class="admin-submission__head">
-            <span class="admin-submission__name">${escapeHtml(sub.djName)}</span>
-            <span class="admin-submission__status admin-submission__status--${sub.status}">${sub.status}</span>
-          </div>
-          <div class="admin-submission__meta">${escapeHtml(slotText)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</div>
+      <div class="sub-row" data-id="${sub.id}">
+        <button type="button" class="sub-row__summary" data-action="toggle">
+          <span class="admin-thumb sub-row__thumb${sub.photoUrl ? "" : " admin-thumb--empty"}" ${photo}></span>
+          <span class="sub-row__name">${escapeHtml(sub.showName || sub.djName)}</span>
+          <span class="sub-row__meta">by ${escapeHtml(sub.djName)} · ${escapeHtml(slotText)} · ${SETUP_LABELS[sub.setup] || escapeHtml(sub.setup)}</span>
+          <span class="sub-row__status sub-row__status--${sub.status}">${sub.status}</span>
+          <span class="sub-row__chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="sub-row__detail" data-detail hidden>
           <div class="admin-submission__meta">${escapeHtml(sub.email)} · ${escapeHtml(sub.phone)} · ${escapeHtml(sub.location)}</div>
           <div class="admin-submission__meta">IG: ${escapeHtml(sub.instagram)} · Genres: ${escapeHtml(sub.genres)}</div>
           ${sub.mixLink ? `<div class="admin-submission__meta"><a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">Mix link ↗</a></div>` : ""}
@@ -251,6 +252,25 @@
             <button type="button" class="btn" data-action="email">Email</button>
             <button type="button" class="btn btn--danger" data-action="delete">Delete</button>
           </div>
+          <form class="admin-compose" data-compose hidden>
+            <div>
+              <label>To</label>
+              <input type="text" value="${escapeHtml(sub.email)}" disabled>
+            </div>
+            <div>
+              <label>Subject</label>
+              <input type="text" name="subject" value="Re: your slip radio submission" required>
+            </div>
+            <div>
+              <label>Message</label>
+              <textarea name="message" required>Hi ${escapeHtml(sub.djName)},\n\n</textarea>
+            </div>
+            <p class="admin-compose__status" data-compose-status></p>
+            <div class="admin-compose__actions">
+              <button type="submit" class="btn btn--primary">Send</button>
+              <button type="button" class="btn" data-action="compose-cancel">Cancel</button>
+            </div>
+          </form>
         </div>
       </div>
     `;
@@ -258,7 +278,7 @@
 
   function renderSubmissions() {
     submissionsEmpty.hidden = cachedSubmissions.length > 0;
-    submissionsList.innerHTML = cachedSubmissions.map(submissionCardMarkup).join("");
+    submissionsList.innerHTML = cachedSubmissions.map(submissionRowMarkup).join("");
     const newCount = cachedSubmissions.filter((s) => s.status === "new").length;
     if (submissionsBadge) {
       submissionsBadge.textContent = String(newCount);
@@ -281,6 +301,14 @@
     const sub = cachedSubmissions.find((s) => s.id === id);
     const action = button.dataset.action;
 
+    if (action === "toggle") {
+      const detail = row.querySelector("[data-detail]");
+      const willOpen = detail.hidden;
+      detail.hidden = !willOpen;
+      row.classList.toggle("sub-row--open", willOpen);
+      return;
+    }
+
     if (action === "accept" || action === "decline") {
       const status = action === "accept" ? "accepted" : "declined";
       try {
@@ -291,7 +319,7 @@
         });
         if (!res.ok) throw new Error(`status ${res.status}`);
         await loadSubmissions();
-        setStatus(`Marked "${sub ? sub.djName : id}" ${status}.`);
+        setStatus(`Marked "${sub ? sub.showName : id}" ${status}.`);
       } catch (err) {
         setStatus("Couldn't update submission — try again.", "error");
       }
@@ -299,7 +327,7 @@
     }
 
     if (action === "delete") {
-      if (!confirm(`Delete ${sub ? sub.djName + "'s" : "this"} submission? This can't be undone.`)) return;
+      if (!confirm(`Delete ${sub ? `"${sub.showName}"` : "this"} submission? This can't be undone.`)) return;
       try {
         const res = await fetch(`/api/admin/submissions/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error(`delete ${res.status}`);
@@ -312,23 +340,49 @@
     }
 
     if (action === "email") {
-      if (!sub) return;
-      const subject = prompt("Subject", "Re: your slip radio submission");
-      if (subject === null) return;
-      const message = prompt(`Message to ${sub.email}`, `Hi ${sub.djName},\n\n`);
-      if (message === null || !message.trim()) return;
-      try {
-        const res = await fetch("/api/admin/email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ to: sub.email, subject, message }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || `email ${res.status}`);
-        setStatus(`Email sent to ${sub.email}.`);
-      } catch (err) {
-        setStatus(err.message || "Couldn't send email — try again.", "error");
-      }
+      const panel = row.querySelector("[data-compose]");
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) panel.querySelector("input[name='subject']").focus();
+      return;
+    }
+
+    if (action === "compose-cancel") {
+      row.querySelector("[data-compose]").hidden = true;
+    }
+  });
+
+  submissionsList.addEventListener("submit", async (e) => {
+    const form = e.target.closest("[data-compose]");
+    if (!form) return;
+    e.preventDefault();
+
+    const row = form.closest("[data-id]");
+    const sub = cachedSubmissions.find((s) => s.id === row.dataset.id);
+    const composeStatus = form.querySelector("[data-compose-status]");
+    const sendBtn = form.querySelector("button[type='submit']");
+    const subject = form.elements.namedItem("subject").value.trim();
+    const message = form.elements.namedItem("message").value.trim();
+    if (!subject || !message || !sub) return;
+
+    sendBtn.disabled = true;
+    composeStatus.textContent = "Sending…";
+    composeStatus.removeAttribute("data-tone");
+    try {
+      const res = await fetch("/api/admin/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: sub.email, subject, message }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `email ${res.status}`);
+      composeStatus.textContent = "";
+      form.hidden = true;
+      setStatus(`Email sent to ${sub.email}.`);
+    } catch (err) {
+      composeStatus.textContent = err.message || "Couldn't send — try again.";
+      composeStatus.dataset.tone = "error";
+    } finally {
+      sendBtn.disabled = false;
     }
   });
 

@@ -1,7 +1,7 @@
 import { jsonResponse, sanitizeText } from "../../_utils.js";
 import { sendEmail } from "../../_email.js";
 
-const REQUIRED = ["email", "djName", "bio", "instagram", "phone", "location", "genres", "photoUrl", "slotId", "setup"];
+const REQUIRED = ["email", "djName", "showName", "bio", "instagram", "phone", "location", "genres", "photoUrl", "slotId", "setup"];
 const SETUPS = ["digital", "vinyl", "hybrid"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -32,6 +32,7 @@ export async function onRequestPost({ request, env }) {
     id,
     email,
     djName: sanitizeText(payload.djName, 100),
+    showName: sanitizeText(payload.showName, 100),
     bio: sanitizeText(payload.bio, 1000),
     instagram: sanitizeText(payload.instagram, 100),
     phone: sanitizeText(payload.phone, 50),
@@ -57,8 +58,8 @@ export async function onRequestPost({ request, env }) {
   await sendEmail(
     {
       to: notifyEmail,
-      subject: `New DJ submission — ${record.djName}`,
-      text: `${record.djName} (${record.email}) applied to play ${slotText}.\n\nInstagram: ${record.instagram}\nPhone: ${record.phone}\nBased in: ${record.location}\nGenres: ${record.genres}\nSetup: ${record.setup}\nMix link: ${record.mixLink || "—"}\nPhoto: ${record.photoUrl}\n\nBio:\n${record.bio}\n\nReview it at slipradio.live/admin.`,
+      subject: `New DJ submission — ${record.showName}`,
+      text: `${record.djName} (${record.email}) applied to play "${record.showName}" on ${slotText}.\n\nInstagram: ${record.instagram}\nPhone: ${record.phone}\nBased in: ${record.location}\nGenres: ${record.genres}\nSetup: ${record.setup}\nMix link: ${record.mixLink || "—"}\nPhoto: ${record.photoUrl}\n\nBio:\n${record.bio}\n\nReview it at slipradio.live/admin.`,
       replyTo: record.email,
     },
     env
