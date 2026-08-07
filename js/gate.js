@@ -1,53 +1,32 @@
 (function () {
   var STORAGE_KEY = "sr_unlocked";
-  var PASSWORD_HASH = "d07de405ee79c959a4950b8b2952d1ee8bd5a9d1d35bd0c7fb5c3fcccbd34dbd";
 
   if (localStorage.getItem(STORAGE_KEY) === "1") return;
-
-  async function sha256Hex(text) {
-    var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf))
-      .map(function (b) { return b.toString(16).padStart(2, "0"); })
-      .join("");
-  }
 
   document.addEventListener("DOMContentLoaded", function () {
     var overlay = document.createElement("div");
     overlay.className = "site-gate";
+    overlay.setAttribute("role", "button");
+    overlay.setAttribute("tabindex", "0");
+    overlay.setAttribute("aria-label", "Enter site");
     overlay.innerHTML =
-      '<p class="site-gate__date">8.9.26</p>' +
-      '<form class="site-gate__form">' +
-        '<input type="password" class="site-gate__input" placeholder="Password" autocomplete="off" aria-label="Password">' +
-      "</form>" +
-      '<p class="site-gate__error" hidden>Incorrect password</p>';
+      '<img class="site-gate__sign" src="/assets/images/warning.png" alt="" width="220" height="220">' +
+      '<p class="site-gate__date">8.9.26</p>';
 
     document.body.appendChild(overlay);
     document.body.classList.add("site-gate-active");
 
-    var form = overlay.querySelector(".site-gate__form");
-    var input = overlay.querySelector(".site-gate__input");
-    var error = overlay.querySelector(".site-gate__error");
+    function unlock() {
+      localStorage.setItem(STORAGE_KEY, "1");
+      document.body.classList.remove("site-gate-active");
+      overlay.remove();
+    }
 
-    input.focus();
-
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
+    overlay.addEventListener("click", unlock);
+    overlay.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        form.requestSubmit();
-      }
-    });
-
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      var hash = await sha256Hex(input.value);
-      if (hash === PASSWORD_HASH) {
-        localStorage.setItem(STORAGE_KEY, "1");
-        document.body.classList.remove("site-gate-active");
-        overlay.remove();
-      } else {
-        error.hidden = false;
-        input.value = "";
-        input.focus();
+        unlock();
       }
     });
   });
