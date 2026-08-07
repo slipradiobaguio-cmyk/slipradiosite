@@ -286,7 +286,15 @@
     sendMessage(value.slice(0, MESSAGE_MAX));
   }
 
+  const CLOSE_ANIM_MS = 220;
+  let closeTimer = null;
+
   function openWidget() {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    widget.removeAttribute("data-closing");
     widget.dataset.open = "true";
     setUnread(0);
     scrollToBottom();
@@ -294,7 +302,14 @@
   }
 
   function closeWidget() {
+    if (widget.dataset.open !== "true") return;
     widget.dataset.open = "false";
+    widget.dataset.closing = "true";
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = window.setTimeout(() => {
+      widget.removeAttribute("data-closing");
+      closeTimer = null;
+    }, CLOSE_ANIM_MS);
   }
 
   fab.addEventListener("click", openWidget);

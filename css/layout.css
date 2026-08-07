@@ -68,6 +68,11 @@ body.theme-dark .site-logo--text {
   background: none;
   color: inherit;
   cursor: pointer;
+  transition: transform 0.1s ease-out;
+}
+
+.nav-burger:active {
+  transform: scale(0.9);
 }
 
 .nav-burger span {
@@ -293,7 +298,7 @@ body.theme-dark .nav-drawer__row {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease-out;
 }
 
 .show-detail__follow::after {
@@ -303,6 +308,10 @@ body.theme-dark .nav-drawer__row {
 .show-detail__follow:hover {
   background: var(--color-text);
   color: var(--color-bg);
+}
+
+.show-detail__follow:active {
+  transform: scale(0.97);
 }
 
 body.theme-dark .show-detail__follow:hover {
