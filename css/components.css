@@ -129,34 +129,80 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
+}
+
+.show-row__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
 }
 
 .show-row__title {
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.95rem;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.show-row__meta {
+.show-row__date {
+  flex-shrink: 0;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
+  color: var(--color-muted);
+}
+
+.show-row__date:empty {
+  display: none;
+}
+
+/* host stays in the body font so it doesn't read as the same element as
+   the genre tag below it, which is mono/uppercase */
+.show-row__host {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--color-muted-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.show-row__host:empty {
+  display: none;
+}
+
+.show-row__genre {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-offline);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.show-row__genre:empty {
+  display: none;
+}
+
 .show-row__desc {
-  font-size: 0.8rem;
+  max-width: 60ch;
+  font-size: 0.78rem;
   color: var(--color-muted-strong);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.show-row__desc:empty {
+  display: none;
 }
 
 @media (min-width: 768px) {
@@ -164,9 +210,21 @@
     font-size: 1.05rem;
   }
 
+  .show-row__date {
+    font-size: 0.72rem;
+  }
+
+  .show-row__host {
+    font-size: 0.88rem;
+  }
+
+  .show-row__genre {
+    font-size: 0.66rem;
+  }
+
   .show-row__desc {
-    font-size: 0.85rem;
-    -webkit-line-clamp: 3;
+    font-size: 0.83rem;
+    -webkit-line-clamp: 2;
   }
 }
 

@@ -9,6 +9,13 @@
     ));
   }
 
+  function fmtRowDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  }
+
   function rowMarkup(show, placeholder, isOnAir) {
     const thumb = show.heroImage
       ? `style="background-image:url('${show.heroImage}')"`
@@ -21,14 +28,17 @@
     const badge = isOnAir
       ? `<span class="onair-badge show-row__badge"><span class="live-dot" aria-hidden="true"></span>On air now</span>`
       : "";
-    const meta = [escapeHtml(show.guestName), escapeHtml(show.genres)].filter(Boolean).join(" · ");
 
     return `
       <${tag} class="show-row"${href}>
         <div class="${thumbClass}" ${thumb}>${badge}</div>
         <div class="show-row__body">
-          <div class="show-row__title">${escapeHtml(show.title)}</div>
-          <div class="show-row__meta">${meta}</div>
+          <div class="show-row__head">
+            <span class="show-row__title">${escapeHtml(show.title)}</span>
+            <span class="show-row__date">${fmtRowDate(show.date)}</span>
+          </div>
+          <div class="show-row__host">${escapeHtml(show.guestName)}</div>
+          <div class="show-row__genre">${escapeHtml(show.genres)}</div>
           <p class="show-row__desc">${escapeHtml(show.description)}</p>
         </div>
       </${tag}>
