@@ -372,81 +372,9 @@ body.theme-dark .show-detail__follow:hover {
   }
 }
 
-/* home hero — cards stacked in the same grid cell and crossfaded by JS,
-   at every breakpoint (not just mobile — the progress bar below only means
-   anything if the carousel it's tracking actually runs everywhere) */
-
-.shows-grid--home {
-  display: grid;
-  grid-template-columns: none;
-  gap: 0;
-}
-
-.shows-grid--home .show-card {
-  grid-area: 1 / 1;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.6s ease;
-}
-
-.shows-grid--home .show-card.is-active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* a full-width square (mobile's proportions) reads as a huge, page-dominating
-   block once the same layout runs at desktop widths — cap it to a wide
-   banner instead of letting the 1:1 thumb ratio scale the height up too */
-@media (min-width: 768px) {
-  .shows-grid--home .show-card__thumb {
-    aspect-ratio: auto;
-    height: 420px;
-  }
-}
-
-@media (min-width: 1440px) {
-  .shows-grid--home .show-card__thumb {
-    height: 520px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shows-grid--home .show-card {
-    transition: none;
-  }
-}
-
 /* keep the footer off-screen until the page is actually scrolled to the end,
    same as it'll behave once each page has more real content */
 
 main {
   min-height: 100vh;
-}
-
-/* hero carousel progress — a thin scrubber under the thumbnails, showing
-   how far through the row you are. Runs the same at every breakpoint. */
-
-.hero-carousel-progress {
-  display: flex;
-  align-items: center;
-  height: 4px;
-  margin-top: var(--space-sm);
-}
-
-.hero-carousel-progress__seg {
-  flex: 1;
-  height: 2px;
-  background: var(--color-border);
-  transition: height 0.25s ease, background-color 0.25s ease;
-}
-
-.hero-carousel-progress__seg.is-active {
-  height: 4px;
-  background: var(--color-text);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-carousel-progress__seg {
-    transition: none;
-  }
 }

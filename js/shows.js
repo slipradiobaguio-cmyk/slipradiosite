@@ -1,12 +1,6 @@
 (function () {
   const grid = document.querySelector(".shows-grid");
-  if (!grid) {
-    if (window.__srHeroCarouselCleanup) {
-      window.__srHeroCarouselCleanup();
-      window.__srHeroCarouselCleanup = null;
-    }
-    return;
-  }
+  if (!grid) return;
 
   function cardMarkup(show, placeholder, isOnAir) {
     const thumb = show.heroImage
@@ -34,67 +28,6 @@
     return Array.from({ length: count }, () => ({ title: "Show Title", guestName: "Artist" }));
   }
 
-  function initHeroCarousel() {
-    if (window.__srHeroCarouselCleanup) {
-      window.__srHeroCarouselCleanup();
-      window.__srHeroCarouselCleanup = null;
-    }
-    if (!grid.classList.contains("shows-grid--home")) return;
-    const progressTrack = grid.parentElement.querySelector("[data-hero-progress]");
-    const interval = 3000;
-    let timer = null;
-    let cards = [];
-    let segments = [];
-    let index = 0;
-
-    function buildSegments() {
-      if (!progressTrack) return;
-      progressTrack.innerHTML = cards
-        .map(() => `<div class="hero-carousel-progress__seg"></div>`)
-        .join("");
-      segments = Array.from(progressTrack.children);
-    }
-
-    function applyActive() {
-      cards.forEach((card, i) => card.classList.toggle("is-active", i === index));
-      segments.forEach((seg, i) => seg.classList.toggle("is-active", i === index));
-    }
-
-    function goTo(i) {
-      if (!cards.length) return;
-      index = ((i % cards.length) + cards.length) % cards.length;
-      applyActive();
-    }
-
-    function advance() {
-      goTo(index + 1);
-    }
-
-    function start() {
-      stop();
-      if (cards.length > 1) timer = setInterval(advance, interval);
-    }
-
-    function stop() {
-      if (timer) clearInterval(timer);
-      timer = null;
-    }
-
-    function sync() {
-      cards = Array.from(grid.querySelectorAll(".show-card"));
-      buildSegments();
-      index = 0;
-      applyActive();
-      start();
-    }
-
-    sync();
-
-    window.__srHeroCarouselCleanup = () => {
-      stop();
-    };
-  }
-
   async function load() {
     grid.setAttribute("aria-busy", "true");
     const limit = grid.dataset.limit ? parseInt(grid.dataset.limit, 10) : null;
@@ -118,7 +51,6 @@
       grid.innerHTML = `<p class="admin-status" data-tone="error">Couldn't load shows right now.</p>`;
     } finally {
       grid.removeAttribute("aria-busy");
-      initHeroCarousel();
     }
   }
 
