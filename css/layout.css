@@ -238,16 +238,25 @@ body.theme-dark .nav-drawer__row {
   }
 }
 
-/* about page */
+/* about page: capped to a readable column so the page doesn't dissolve
+   into empty space on wide screens, anchored to the same left gutter as
+   the header/nav instead of centering */
+
+.about-intro,
+.about-team,
+.about-thanks {
+  max-width: 960px;
+}
 
 .about-intro p {
   max-width: 60ch;
-  margin-bottom: var(--space-sm);
+  line-height: 1.6;
+  margin-bottom: var(--space-md);
 }
 
 .about-team,
 .about-thanks {
-  padding-block: var(--space-xl);
+  padding-block: var(--space-lg);
 }
 
 .about-team {
