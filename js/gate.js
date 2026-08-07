@@ -15,16 +15,11 @@
     var overlay = document.createElement("div");
     overlay.className = "site-gate";
     overlay.innerHTML =
-      '<div class="site-gate__panel">' +
-        '<p class="site-gate__eyebrow">Under construction</p>' +
-        '<h1 class="site-gate__title">slip radio is getting ready</h1>' +
-        '<p class="site-gate__copy">We’re still building this. Check back soon.</p>' +
-        '<form class="site-gate__form">' +
-          '<input type="password" class="site-gate__input" placeholder="Password" autocomplete="off" aria-label="Password">' +
-          '<button type="submit" class="site-gate__submit">Enter</button>' +
-        "</form>" +
-        '<p class="site-gate__error" hidden>Incorrect password</p>' +
-      "</div>";
+      '<p class="site-gate__date">8.9.26</p>' +
+      '<form class="site-gate__form">' +
+        '<input type="password" class="site-gate__input" placeholder="Password" autocomplete="off" aria-label="Password">' +
+      "</form>" +
+      '<p class="site-gate__error" hidden>Incorrect password</p>';
 
     document.body.appendChild(overlay);
     document.body.classList.add("site-gate-active");
@@ -34,6 +29,13 @@
     var error = overlay.querySelector(".site-gate__error");
 
     input.focus();
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
