@@ -1,7 +1,39 @@
 (function () {
-  const grid = document.querySelector(".shows-grid");
+  const grid = document.querySelector(".shows-index");
   const heroWrap = document.querySelector("[data-hero-carousel]");
   if (!grid && !heroWrap) return;
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, (c) => (
+      { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+    ));
+  }
+
+  function rowMarkup(show, placeholder, isOnAir) {
+    const thumb = show.heroImage
+      ? `style="background-image:url('${show.heroImage}')"`
+      : "";
+    const thumbClass = show.heroImage
+      ? "show-card__thumb show-row__thumb"
+      : "show-card__thumb show-card__thumb--empty show-row__thumb";
+    const tag = placeholder ? "div" : "a";
+    const href = placeholder ? "" : ` href="/shows/${show.slug}"`;
+    const badge = isOnAir
+      ? `<span class="onair-badge show-row__badge"><span class="live-dot" aria-hidden="true"></span>On air now</span>`
+      : "";
+    const meta = [escapeHtml(show.guestName), escapeHtml(show.genres)].filter(Boolean).join(" · ");
+
+    return `
+      <${tag} class="show-row"${href}>
+        <div class="${thumbClass}" ${thumb}>${badge}</div>
+        <div class="show-row__body">
+          <div class="show-row__title">${escapeHtml(show.title)}</div>
+          <div class="show-row__meta">${meta}</div>
+          <p class="show-row__desc">${escapeHtml(show.description)}</p>
+        </div>
+      </${tag}>
+    `;
+  }
 
   function cardMarkup(show, placeholder, isOnAir, extraClass) {
     const thumb = show.heroImage
@@ -156,10 +188,10 @@
       }
 
       if (!shows.length) {
-        grid.innerHTML = placeholderShows(limit || 8).map((show) => cardMarkup(show, true)).join("");
+        grid.innerHTML = placeholderShows(limit || 6).map((show) => rowMarkup(show, true)).join("");
         return;
       }
-      grid.innerHTML = shows.map((show) => cardMarkup(show, false, show.slug === onAirSlug)).join("");
+      grid.innerHTML = shows.map((show) => rowMarkup(show, false, show.slug === onAirSlug)).join("");
     } catch (err) {
       target.innerHTML = `<p class="admin-status" data-tone="error">Couldn't load shows right now.</p>`;
     } finally {

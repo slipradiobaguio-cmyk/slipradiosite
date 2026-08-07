@@ -352,23 +352,22 @@ body.theme-dark .show-detail__follow:hover {
   }
 }
 
-/* shows grid */
+/* shows index: rows instead of a thumbnail grid, so each show gets room
+   for its genre and description instead of just a title */
 
-.shows-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-md);
+.shows-index {
+  --thumb-size: 84px;
 }
 
 @media (min-width: 768px) {
-  .shows-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .shows-index {
+    --thumb-size: 108px;
   }
 }
 
 @media (min-width: 1440px) {
-  .shows-grid {
-    grid-template-columns: repeat(4, 1fr);
+  .shows-index {
+    --thumb-size: 136px;
   }
 }
 
