@@ -372,6 +372,76 @@ body.theme-dark .show-detail__follow:hover {
   }
 }
 
+/* home hero — a filmstrip of squares that slides one at a time through the
+   full lineup and wraps around, same visible-count breakpoints as the shows
+   grid above (1 / 2 / 4) so the two feel like the same component */
+
+.hero-carousel {
+  overflow: hidden;
+}
+
+.hero-carousel__track {
+  display: flex;
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.hero-carousel__track .show-card {
+  flex: 0 0 100%;
+}
+
+@media (min-width: 768px) {
+  .hero-carousel__track .show-card {
+    flex: 0 0 50%;
+  }
+}
+
+@media (min-width: 1440px) {
+  .hero-carousel__track .show-card {
+    flex: 0 0 25%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel__track {
+    transition: none;
+  }
+}
+
+/* hero carousel progress — a thin scrubber, one segment per show, with a
+   thicker highlighted band marking which ones are currently in view. Hidden
+   on desktop, where all 4 slots are visible enough that it's redundant. */
+
+.hero-carousel-progress {
+  display: flex;
+  align-items: center;
+  height: 4px;
+  margin-top: var(--space-sm);
+}
+
+.hero-carousel-progress__seg {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  transition: height 0.25s ease, background-color 0.25s ease;
+}
+
+.hero-carousel-progress__seg.is-active {
+  height: 4px;
+  background: var(--color-text);
+}
+
+@media (min-width: 1440px) {
+  .hero-carousel-progress {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel-progress__seg {
+    transition: none;
+  }
+}
+
 /* keep the footer off-screen until the page is actually scrolled to the end,
    same as it'll behave once each page has more real content */
 
