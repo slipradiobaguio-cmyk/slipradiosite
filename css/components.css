@@ -2,6 +2,7 @@
 
 .show-card {
   display: block;
+  min-width: 0;
   background: var(--color-bg);
 }
 
@@ -71,6 +72,9 @@
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .show-card__sub {
@@ -78,6 +82,9 @@
   font-size: 0.7rem;
   color: var(--color-offline);
   margin-top: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* schedule table (home) */

@@ -372,37 +372,48 @@ body.theme-dark .show-detail__follow:hover {
   }
 }
 
-/* home hero — a filmstrip of squares that slides one at a time through the
-   full lineup and wraps around, same visible-count breakpoints as the shows
-   grid above (1 / 2 / 4) so the two feel like the same component */
-
-.hero-carousel {
-  overflow: hidden;
-}
+/* home hero — one slot per visible column (1 / 2 / 4, same breakpoints as
+   the shows grid above), each slot holding its share of the full lineup
+   stacked and crossfaded in place. Nothing ever slides, so nothing gets
+   clipped by the container edge. */
 
 .hero-carousel__track {
-  display: flex;
-  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.hero-carousel__track .show-card {
-  flex: 0 0 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
 }
 
 @media (min-width: 768px) {
-  .hero-carousel__track .show-card {
-    flex: 0 0 50%;
+  .hero-carousel__track {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1440px) {
-  .hero-carousel__track .show-card {
-    flex: 0 0 25%;
+  .hero-carousel__track {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
+.hero-carousel__slot {
+  position: relative;
+  display: grid;
+}
+
+.hero-carousel__slot .show-card {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+
+.hero-carousel__slot .show-card.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hero-carousel__track {
+  .hero-carousel__slot .show-card {
     transition: none;
   }
 }

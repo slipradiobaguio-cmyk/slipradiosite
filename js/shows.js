@@ -3,19 +3,20 @@
   const heroWrap = document.querySelector("[data-hero-carousel]");
   if (!grid && !heroWrap) return;
 
-  function cardMarkup(show, placeholder, isOnAir) {
+  function cardMarkup(show, placeholder, isOnAir, extraClass) {
     const thumb = show.heroImage
       ? `style="background-image:url('${show.heroImage}')"`
       : "";
     const thumbClass = show.heroImage ? "show-card__thumb" : "show-card__thumb show-card__thumb--empty";
     const tag = placeholder ? "div" : "a";
     const href = placeholder ? "" : ` href="/shows/${show.slug}"`;
+    const cardClass = extraClass ? `show-card ${extraClass}` : "show-card";
     const badge = isOnAir
       ? `<span class="onair-badge show-card__badge"><span class="live-dot" aria-hidden="true"></span>On air now</span>`
       : "";
 
     return `
-      <${tag} class="show-card"${href}>
+      <${tag} class="${cardClass}"${href}>
         <div class="${thumbClass}" ${thumb}>${badge}</div>
         <div class="show-card__meta">
           <div class="show-card__title">${show.title}</div>
@@ -29,10 +30,14 @@
     return Array.from({ length: count }, () => ({ title: "Show Title", guestName: "Artist" }));
   }
 
+  // fades each visible slot's card in place — no sliding, so nothing ever
+  // gets clipped by the container edge. Shows are dealt round-robin into
+  // `visible` slots, and every slot advances to its next card together.
   function initHeroCarousel(track, progressTrack, shows, onAirSlug) {
     const interval = 2500;
     let visible = getVisibleCount();
-    let index = 0;
+    let slots = [];
+    let pageIndex = 0;
     let timer = null;
 
     function getVisibleCount() {
@@ -40,6 +45,12 @@
       if (w >= 1440) return 4;
       if (w >= 768) return 2;
       return 1;
+    }
+
+    function partition() {
+      const groups = Array.from({ length: visible }, () => []);
+      shows.forEach((show, i) => groups[i % visible].push({ show, originalIndex: i }));
+      return groups;
     }
 
     function buildProgress() {
@@ -51,40 +62,56 @@
 
     function applyActiveSegments() {
       if (!progressTrack || !shows.length) return;
-      const total = shows.length;
-      const windowSize = Math.min(visible, total);
-      const segs = Array.from(progressTrack.children);
-      segs.forEach((seg, i) => {
-        const inWindow = Array.from({ length: windowSize }, (_, k) => (index + k) % total).includes(i);
-        seg.classList.toggle("is-active", inWindow);
+      const activeIndices = new Set(
+        slots.map((cards) => (cards.length ? cards[pageIndex % cards.length].originalIndex : -1))
+      );
+      Array.from(progressTrack.children).forEach((seg, i) => {
+        seg.classList.toggle("is-active", activeIndices.has(i));
       });
     }
 
-    function applyPosition(animate) {
-      const total = shows.length;
-      if (!total) return;
-      track.style.transition = animate ? "" : "none";
-      const extendedLen = total > visible ? total + visible : total;
-      track.style.transform = `translateX(-${(index / extendedLen) * 100}%)`;
-      if (!animate) track.offsetHeight;
+    function render() {
+      if (!shows.length) {
+        track.innerHTML = placeholderShows(visible)
+          .map((show) => `<div class="hero-carousel__slot">${cardMarkup(show, true)}</div>`)
+          .join("");
+        buildProgress();
+        return;
+      }
+      slots = partition();
+      pageIndex = 0;
+      track.innerHTML = slots
+        .map((cards) => {
+          const cardsHtml = cards
+            .map((c, p) => cardMarkup(c.show, false, c.show.slug === onAirSlug, p === 0 ? "is-active" : ""))
+            .join("");
+          return `<div class="hero-carousel__slot">${cardsHtml}</div>`;
+        })
+        .join("");
+      buildProgress();
       applyActiveSegments();
     }
 
+    function maxSlotLength() {
+      return slots.reduce((max, cards) => Math.max(max, cards.length), 0);
+    }
+
     function advance() {
-      if (shows.length <= visible) return;
-      index++;
-      applyPosition(true);
-      if (index >= shows.length) {
-        setTimeout(() => {
-          index = index % shows.length;
-          applyPosition(false);
-        }, 720);
-      }
+      if (maxSlotLength() <= 1) return;
+      pageIndex++;
+      Array.from(track.children).forEach((slotEl, i) => {
+        const cards = slots[i];
+        if (!cards.length) return;
+        const cardEls = Array.from(slotEl.children);
+        cardEls.forEach((el) => el.classList.remove("is-active"));
+        cardEls[pageIndex % cards.length].classList.add("is-active");
+      });
+      applyActiveSegments();
     }
 
     function start() {
       stop();
-      if (shows.length > visible) timer = setInterval(advance, interval);
+      if (maxSlotLength() > 1) timer = setInterval(advance, interval);
     }
 
     function stop() {
@@ -92,23 +119,10 @@
       timer = null;
     }
 
-    function render() {
-      if (!shows.length) {
-        track.innerHTML = placeholderShows(visible).map((show) => cardMarkup(show, true)).join("");
-        buildProgress();
-        return;
-      }
-      const extended = shows.length > visible ? shows.concat(shows.slice(0, visible)) : shows;
-      track.innerHTML = extended.map((show) => cardMarkup(show, false, show.slug === onAirSlug)).join("");
-      buildProgress();
-      applyPosition(false);
-    }
-
     function handleResize() {
       const next = getVisibleCount();
       if (next === visible) return;
       visible = next;
-      index = 0;
       render();
       start();
     }
