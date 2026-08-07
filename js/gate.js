@@ -10,7 +10,7 @@
     overlay.setAttribute("tabindex", "0");
     overlay.setAttribute("aria-label", "Enter site");
     overlay.innerHTML =
-      '<img class="site-gate__sign" src="/assets/images/warning.png" alt="" width="220" height="220">' +
+      '<img class="site-gate__sign" src="/assets/images/warning.png" alt="">' +
       '<p class="site-gate__date">8.9.26</p>';
 
     document.body.appendChild(overlay);

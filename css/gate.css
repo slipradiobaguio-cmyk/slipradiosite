@@ -30,6 +30,7 @@ body.site-gate-active {
 .site-gate__sign {
   width: 45vw;
   max-width: 220px;
+  height: auto;
 }
 
 .site-gate__date {
