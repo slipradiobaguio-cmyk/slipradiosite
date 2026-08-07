@@ -310,10 +310,6 @@ body.theme-dark .nav-drawer__row {
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease-out;
 }
 
-.show-detail__follow::after {
-  content: "↗";
-}
-
 .show-detail__follow:hover {
   background: var(--color-text);
   color: var(--color-bg);
