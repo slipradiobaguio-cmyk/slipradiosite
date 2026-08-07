@@ -826,6 +826,11 @@
   background: var(--color-surface-alt);
 }
 
+.admin-slot__tag--pending {
+  color: var(--color-live);
+  border-color: var(--color-live);
+}
+
 .admin-slot__time {
   flex-shrink: 0;
   font-family: var(--font-mono);

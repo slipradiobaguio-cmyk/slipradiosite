@@ -535,14 +535,16 @@
     return parsed.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   }
 
+  const SLOT_TAG_LABEL = { open: "Open", pending: "Pending", reserved: "Booked" };
+
   function slotRowMarkup(slot) {
-    const reservedSub = slot.submissionId ? cachedSubmissions.find((s) => s.id === slot.submissionId) : null;
-    const booked = slot.status === "reserved";
+    const linkedSub = slot.submissionId ? cachedSubmissions.find((s) => s.id === slot.submissionId) : null;
+    const hasWho = slot.status === "pending" || slot.status === "reserved";
     return `
       <div class="admin-slot" data-id="${slot.id}">
-        <span class="admin-slot__tag admin-slot__tag--${slot.status}">${booked ? "Booked" : "Open"}</span>
+        <span class="admin-slot__tag admin-slot__tag--${slot.status}">${SLOT_TAG_LABEL[slot.status] || slot.status}</span>
         <span class="admin-slot__time">${formatSlotTimeRange(slot.startTime, slot.endTime)}</span>
-        <span class="admin-slot__who">${booked && reservedSub ? escapeHtml(reservedSub.djName) : ""}</span>
+        <span class="admin-slot__who">${hasWho && linkedSub ? escapeHtml(linkedSub.djName) : ""}</span>
         <span class="admin-slot__actions">
           <button type="button" class="icon-btn icon-btn--danger" data-action="delete-slot" title="Delete" aria-label="Delete timeslot">${ICONS.delete}</button>
         </span>

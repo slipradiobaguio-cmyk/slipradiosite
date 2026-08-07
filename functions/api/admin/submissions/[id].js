@@ -2,14 +2,25 @@ import { jsonResponse } from "../../../_utils.js";
 
 const STATUSES = ["new", "accepted", "declined"];
 
-// declining frees the slot back up for someone else; accepting/reverting to
-// "new" leaves whatever the slot is currently doing alone
+// slot status tracks the submission linked to it: "pending" while under
+// review, "reserved" once accepted, released back to "open" on decline/delete
+const SLOT_STATUS_BY_SUBMISSION_STATUS = { new: "pending", accepted: "reserved" };
+
 async function releaseSlot(slotId, submissionId, env) {
   if (!slotId) return;
   const slotKey = `slot:${slotId}`;
   const slot = await env.SUBMISSIONS.get(slotKey, "json");
   if (slot && slot.submissionId === submissionId) {
     await env.SUBMISSIONS.put(slotKey, JSON.stringify({ ...slot, status: "open", submissionId: null }));
+  }
+}
+
+async function syncSlotStatus(slotId, submissionId, submissionStatus, env) {
+  if (!slotId) return;
+  const slotKey = `slot:${slotId}`;
+  const slot = await env.SUBMISSIONS.get(slotKey, "json");
+  if (slot && slot.submissionId === submissionId) {
+    await env.SUBMISSIONS.put(slotKey, JSON.stringify({ ...slot, status: SLOT_STATUS_BY_SUBMISSION_STATUS[submissionStatus] }));
   }
 }
 
@@ -25,6 +36,7 @@ export async function onRequestPatch({ params, request, env }) {
   await env.SUBMISSIONS.put(key, JSON.stringify(record));
 
   if (status === "declined") await releaseSlot(existing.slotId, existing.id, env);
+  else await syncSlotStatus(existing.slotId, existing.id, status, env);
 
   return jsonResponse(record);
 }

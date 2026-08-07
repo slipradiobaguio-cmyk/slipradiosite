@@ -68,7 +68,7 @@ export async function onRequestPost({ request, env }) {
   };
 
   await env.SUBMISSIONS.put(`submission:${id}`, JSON.stringify(record));
-  await env.SUBMISSIONS.put(slotKey, JSON.stringify({ ...slot, status: "reserved", submissionId: id }));
+  await env.SUBMISSIONS.put(slotKey, JSON.stringify({ ...slot, status: "pending", submissionId: id }));
 
   const slotText = `${slot.date}, ${slot.startTime}–${slot.endTime}`;
   const notifyEmail = env.ADMIN_NOTIFY_EMAIL;
