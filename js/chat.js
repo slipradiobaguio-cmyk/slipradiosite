@@ -8,7 +8,6 @@
   const MESSAGE_MAX = 240;
   const POLL_INTERVAL_MS = 4000;
   const RESERVED_NAMES = new Set(["admin", "slip radio"]);
-  const DAY_REVEAL_THRESHOLD = 120;
 
   const fab = widget.querySelector(".chat-fab");
   const badge = widget.querySelector("[data-chat-badge]");
@@ -74,18 +73,6 @@
     return feed.scrollHeight - feed.scrollTop - feed.clientHeight < 24;
   }
 
-  // day headers stay out of sight until the reader actually scrolls back
-  // into history — if there's nothing to scroll (a short log), there's
-  // nothing to hide behind, so they just show as normal
-  function updateDayVisibility() {
-    const canScroll = feed.scrollHeight > feed.clientHeight + 4;
-    const scrolledUp = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
-    const revealed = !canScroll || scrolledUp > DAY_REVEAL_THRESHOLD;
-    feed.querySelectorAll(".chat-day").forEach((day) => {
-      day.classList.toggle("chat-day--hidden", !revealed);
-    });
-  }
-
   const AVATAR_TINTS = 5;
 
   function avatarTint(name) {
@@ -98,8 +85,8 @@
 
   // the log is split into per-day groups so a long history doesn't read as
   // one endless wall — only the most recent day renders flat with no header,
-  // matching today's chat exactly; anything older sits behind a collapsed
-  // "day rail" the reader only meets by scrolling back into it
+  // matching today's chat exactly; anything older gets a date divider that's
+  // visible right away, with its rows collapsible by clicking the divider
   let currentDayKey = null;
   let currentContainer = null;
 
@@ -115,7 +102,7 @@
   function freezeCurrentIntoDayGroup() {
     const dayGroup = document.createElement("div");
     dayGroup.className = "chat-day";
-    dayGroup.dataset.open = "false";
+    dayGroup.dataset.open = "true";
     dayGroup.innerHTML = `
       <button type="button" class="chat-day__head">
         <span class="chat-day__date">${currentContainer.dataset.label}</span>
@@ -187,7 +174,6 @@
 
   function scrollToBottom() {
     feed.scrollTop = feed.scrollHeight;
-    updateDayVisibility();
   }
 
   async function loadInitial() {
@@ -219,7 +205,6 @@
 
       if (widget.dataset.open === "true") {
         if (wasAtBottom) scrollToBottom();
-        else updateDayVisibility();
       } else {
         setUnread(unread + data.messages.length);
       }
@@ -321,7 +306,6 @@
     const group = head.closest(".chat-day");
     group.dataset.open = group.dataset.open === "true" ? "false" : "true";
   });
-  feed.addEventListener("scroll", updateDayVisibility);
   input.addEventListener("input", updateActionUI);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {

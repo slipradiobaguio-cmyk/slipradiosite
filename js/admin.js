@@ -1037,7 +1037,12 @@
       });
       if (!res.ok) throw new Error(`chat ${res.status}`);
       chatInput.value = "";
-      await loadChat();
+      try {
+        await loadChat();
+      } catch {
+        // message is already sent server-side — next poll picks it up
+      }
+      chatFeed.scrollTop = chatFeed.scrollHeight;
     } catch (err) {
       setStatus("Couldn't send — try again.", "error");
     } finally {

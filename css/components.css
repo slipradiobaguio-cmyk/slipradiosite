@@ -758,10 +758,6 @@ body.theme-dark .now-playing {
   font-size: 0.6rem;
 }
 
-.chat-day--hidden {
-  display: none;
-}
-
 .chat-day[data-open="false"] .chat-day__chevron {
   transform: rotate(-90deg);
 }
