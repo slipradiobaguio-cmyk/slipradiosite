@@ -20,6 +20,50 @@
     error: "unavailable",
   };
 
+  let nextShowPromise = null;
+
+  function todayISO() {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function parseStartMin(time) {
+    const match = (time || "").match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 0;
+    return Number(match[1]) * 60 + Number(match[2]);
+  }
+
+  function formatNextDate(dateStr) {
+    const date = new Date(dateStr + "T00:00:00");
+    const today = new Date(todayISO() + "T00:00:00");
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    if (date.getTime() === today.getTime()) return "today";
+    if (date.getTime() === tomorrow.getTime()) return "tomorrow";
+    return date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+  }
+
+  async function getNextShow() {
+    if (!nextShowPromise) {
+      nextShowPromise = fetch("/api/shows", { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((shows) => {
+          const today = todayISO();
+          const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+          const upcoming = shows
+            .filter((show) => show.date > today || (show.date === today && parseStartMin(show.time) > nowMin))
+            .sort((a, b) => {
+              if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+              return parseStartMin(a.time) - parseStartMin(b.time);
+            });
+          return upcoming[0] || null;
+        })
+        .catch(() => null);
+    }
+    return nextShowPromise;
+  }
+
   function setState(state, data) {
     bar.dataset.state = state;
     if (liveIndicator) {
@@ -38,12 +82,19 @@
       setInfoLink(data.slug);
       updateMediaSession(data.title || "Live now", data.dj || data.artist || "Slip Radio", data.artwork);
     } else if (state === "offline") {
-      titleEl.textContent = "No one's live right now";
-      artistEl.textContent = data && data.nextShow ? `Next: ${data.nextShow}` : "";
+      titleEl.textContent = "We'll be on air soon.";
+      artistEl.textContent = "";
       toggleBtn.disabled = true;
       pause();
       setInfoLink(null);
       updateMediaSession("Slip Radio", "Offline", null);
+      getNextShow().then((show) => {
+        if (bar.dataset.state !== "offline") return;
+        if (show) {
+          titleEl.textContent = `On air ${formatNextDate(show.date)}`;
+          artistEl.textContent = show.title || "";
+        }
+      });
     } else if (state === "loading") {
       titleEl.textContent = "Connecting to stream…";
       artistEl.textContent = "";
