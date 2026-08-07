@@ -1,10 +1,11 @@
-import { jsonResponse, sanitizeText, getClientIp, hashIp, verifyTurnstile } from "../../_utils.js";
+import { jsonResponse, sanitizeText, getClientIp, hashIp } from "../../_utils.js";
 import { sendEmail } from "../../_email.js";
 
 const REQUIRED = ["email", "djName", "showName", "bio", "instagram", "phone", "location", "genres", "photoUrl", "slotId", "setup"];
 const SETUPS = ["digital", "vinyl", "hybrid"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RATE_LIMIT_SECONDS = 600;
+const MIN_FILL_MS = 3000;
 
 export async function onRequestPost({ request, env }) {
   const payload = await request.json().catch(() => null);
@@ -14,10 +15,16 @@ export async function onRequestPost({ request, env }) {
   // means a bot filled every field blindly. Report success without doing anything
   if (payload.website) return jsonResponse({ id: crypto.randomUUID() }, 201);
 
-  const ip = getClientIp(request);
-  if (!(await verifyTurnstile(payload.turnstileToken, env, ip))) {
-    return jsonResponse({ error: "Verification failed — please try again." }, 400);
+  // timing trap: no real visitor fills this many fields plus a photo upload
+  // in under a few seconds — scripted submissions routinely do. Same silent
+  // "succeed but do nothing" treatment as the honeypot, so a bot doesn't
+  // learn what tripped it
+  const loadedAt = Number(payload.formLoadedAt);
+  if (!loadedAt || Date.now() - loadedAt < MIN_FILL_MS) {
+    return jsonResponse({ id: crypto.randomUUID() }, 201);
   }
+
+  const ip = getClientIp(request);
 
   for (const key of REQUIRED) {
     if (!payload[key] || !String(payload[key]).trim()) {

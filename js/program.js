@@ -9,46 +9,11 @@
   const photoPreview = form.querySelector("[data-field='photoPreview']");
   const successEl = document.querySelector("[data-dj-success]");
 
-  // set by the cf-turnstile widget's callbacks (see program.html) — lets us
-  // tell "still loading" apart from "blocked/expired" instead of only ever
-  // showing the same generic failure after the visitor already filled the form
-  let turnstileBlocked = false;
-  window.onDjTurnstileReady = function () {
-    turnstileBlocked = false;
-  };
-  window.onDjTurnstileError = function () {
-    turnstileBlocked = true;
-  };
-
-  // the widget is data-execution="execute" (see program.html) — it does
-  // nothing, and shows nothing, until this fires. Kept out of the page-load
-  // path on purpose so visitors don't see a verification box while they're
-  // still filling out the form
-  let turnstileExecuted = false;
-  function executeTurnstile() {
-    if (turnstileExecuted) return;
-    const widget = form.querySelector("[data-dj-turnstile]");
-    if (window.turnstile && widget) {
-      turnstile.execute(widget);
-      turnstileExecuted = true;
-    }
-  }
-
-  function waitForTurnstileToken(timeoutMs) {
-    const input = form.querySelector('[name="cf-turnstile-response"]');
-    if (input && input.value) return Promise.resolve(input.value);
-    return new Promise((resolve) => {
-      const start = Date.now();
-      const poll = () => {
-        executeTurnstile();
-        const el = form.querySelector('[name="cf-turnstile-response"]');
-        if (el && el.value) return resolve(el.value);
-        if (turnstileBlocked || Date.now() - start >= timeoutMs) return resolve("");
-        setTimeout(poll, 250);
-      };
-      poll();
-    });
-  }
+  // anti-bot timing trap: real visitors take well over a few seconds to fill
+  // this many fields plus pick a photo — scripted submissions rarely do.
+  // Checked again server-side (functions/api/submissions/index.js), this is
+  // just so a too-fast submit never even reaches the network
+  const formLoadedAt = Date.now();
 
   function setStatus(message, tone) {
     statusEl.textContent = message || "";
@@ -158,6 +123,7 @@
 
     const payload = {
       website: form.elements.namedItem("website").value,
+      formLoadedAt,
       email: form.elements.namedItem("email").value.trim(),
       djName: form.elements.namedItem("djName").value.trim(),
       showName: form.elements.namedItem("showName").value.trim(),
@@ -182,26 +148,6 @@
     }
 
     submitBtn.disabled = true;
-
-    if (turnstileBlocked) {
-      setStatus("Verification couldn't load — try turning off any ad/content blocker or switching networks, then reload the page.", "error");
-      submitBtn.disabled = false;
-      return;
-    }
-
-    setStatus("Verifying…");
-    payload.turnstileToken = await waitForTurnstileToken(15000);
-    if (!payload.turnstileToken) {
-      setStatus(
-        turnstileBlocked
-          ? "Verification couldn't load — try turning off any ad/content blocker or switching networks, then reload the page."
-          : "Still preparing verification — wait a few seconds and try again.",
-        "error"
-      );
-      submitBtn.disabled = false;
-      return;
-    }
-
     setStatus("Submitting…");
     try {
       const res = await fetch("/api/submissions", {
@@ -216,9 +162,6 @@
       successEl.hidden = false;
     } catch (err) {
       setStatus(err.message || "Couldn't submit — try again.", "error");
-      // Turnstile tokens are single-use — reset so the next submit re-executes fresh
-      if (window.turnstile) turnstile.reset();
-      turnstileExecuted = false;
       submitBtn.disabled = false;
     }
   });
