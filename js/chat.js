@@ -86,7 +86,7 @@
   // the log is split into per-day groups so a long history doesn't read as
   // one endless wall — only the most recent day renders flat with no header,
   // matching today's chat exactly; anything older gets a date divider that's
-  // visible right away, with its rows collapsible by clicking the divider
+  // visible right away but starts collapsed, expandable by clicking it
   let currentDayKey = null;
   let currentContainer = null;
 
@@ -102,7 +102,7 @@
   function freezeCurrentIntoDayGroup() {
     const dayGroup = document.createElement("div");
     dayGroup.className = "chat-day";
-    dayGroup.dataset.open = "true";
+    dayGroup.dataset.open = "false";
     dayGroup.innerHTML = `
       <button type="button" class="chat-day__head">
         <span class="chat-day__date">${currentContainer.dataset.label}</span>
