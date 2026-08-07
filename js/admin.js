@@ -644,6 +644,7 @@
       ? `url('${show.heroImage}')`
       : "";
     form.dataset.heroImage = show.heroImage || "";
+    recropBtn.hidden = !show.heroImage;
     editingSlug = show.slug;
     formTitleEl.textContent = `Edit "${show.title}"`;
     setStatus("");
@@ -654,6 +655,7 @@
     form.reset();
     form.querySelector("[data-field='heroImagePreview']").style.backgroundImage = "";
     form.dataset.heroImage = "";
+    recropBtn.hidden = true;
     editingSlug = null;
     formTitleEl.textContent = "Add a show";
     setStatus("");
@@ -666,53 +668,172 @@
     }
   });
 
-  const MAX_THUMB_DIMENSION = 1600;
+  const OUTPUT_THUMB_SIZE = 1200;
   const THUMB_WEBP_QUALITY = 0.82;
 
-  async function prepareThumbnail(file) {
-    if (!("createImageBitmap" in window) || typeof OffscreenCanvas === "undefined") {
-      return file;
-    }
-    let bitmap;
-    try {
-      bitmap = await createImageBitmap(file);
-    } catch {
-      return file;
-    }
-    const scale = Math.min(1, MAX_THUMB_DIMENSION / Math.max(bitmap.width, bitmap.height));
-    const width = Math.round(bitmap.width * scale);
-    const height = Math.round(bitmap.height * scale);
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close();
-    try {
-      const blob = await canvas.convertToBlob({ type: "image/webp", quality: THUMB_WEBP_QUALITY });
-      if (blob.type !== "image/webp") return file;
-      return blob;
-    } catch {
-      return file;
-    }
+  // crop tool — lets the admin pan/zoom a square window over the source
+  // photo instead of uploading whatever crop the source file happened to
+  // have. output is always a square canvas render, matching the fixed 1:1
+  // show-card grid on the live site.
+  const cropModal = document.querySelector("[data-crop-modal]");
+  const cropViewport = document.querySelector("[data-crop-viewport]");
+  const cropImageEl = document.querySelector("[data-crop-image]");
+  const cropZoom = document.querySelector("[data-crop-zoom]");
+  const cropCancelBtn = cropModal.querySelector("[data-action='crop-cancel']");
+  const cropConfirmBtn = cropModal.querySelector("[data-action='crop-confirm']");
+
+  let crop = null;
+  let cropResolve = null;
+  let cropDragPointerId = null;
+  let cropDragStart = null;
+
+  function updateCropSize() {
+    const scale = crop.baseScale * crop.zoom;
+    crop.displayedWidth = crop.naturalWidth * scale;
+    crop.displayedHeight = crop.naturalHeight * scale;
+    cropImageEl.style.width = `${crop.displayedWidth}px`;
+    cropImageEl.style.height = `${crop.displayedHeight}px`;
   }
 
-  const fileInput = form.querySelector("input[type='file']");
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files[0];
-    if (!file) return;
+  function updateCropTransform() {
+    const minX = Math.min(0, crop.viewportSize - crop.displayedWidth);
+    const minY = Math.min(0, crop.viewportSize - crop.displayedHeight);
+    crop.translateX = Math.min(0, Math.max(minX, crop.translateX));
+    crop.translateY = Math.min(0, Math.max(minY, crop.translateY));
+    cropImageEl.style.transform = `translate(${crop.translateX}px, ${crop.translateY}px)`;
+  }
+
+  function closeCropper(result) {
+    cropModal.hidden = true;
+    cropImageEl.onload = null;
+    cropImageEl.onerror = null;
+    cropImageEl.removeAttribute("src");
+    crop = null;
+    const resolve = cropResolve;
+    cropResolve = null;
+    if (resolve) resolve(result);
+  }
+
+  function openCropper(src) {
+    return new Promise((resolve) => {
+      cropResolve = resolve;
+      cropModal.hidden = false;
+      cropZoom.value = "1";
+      cropImageEl.onload = () => {
+        const viewportSize = cropViewport.clientWidth;
+        crop = {
+          naturalWidth: cropImageEl.naturalWidth,
+          naturalHeight: cropImageEl.naturalHeight,
+          viewportSize,
+          baseScale: viewportSize / Math.min(cropImageEl.naturalWidth, cropImageEl.naturalHeight),
+          zoom: 1,
+          translateX: 0,
+          translateY: 0,
+          displayedWidth: 0,
+          displayedHeight: 0,
+        };
+        updateCropSize();
+        crop.translateX = (viewportSize - crop.displayedWidth) / 2;
+        crop.translateY = (viewportSize - crop.displayedHeight) / 2;
+        updateCropTransform();
+      };
+      cropImageEl.onerror = () => closeCropper(null);
+      cropImageEl.src = src;
+    });
+  }
+
+  cropZoom.addEventListener("input", () => {
+    if (!crop) return;
+    crop.zoom = Number(cropZoom.value);
+    updateCropSize();
+    updateCropTransform();
+  });
+
+  cropViewport.addEventListener("pointerdown", (e) => {
+    if (!crop) return;
+    cropDragPointerId = e.pointerId;
+    cropDragStart = { x: e.clientX, y: e.clientY, translateX: crop.translateX, translateY: crop.translateY };
+    cropViewport.setPointerCapture(e.pointerId);
+  });
+
+  cropViewport.addEventListener("pointermove", (e) => {
+    if (!crop || cropDragStart === null || cropDragPointerId !== e.pointerId) return;
+    crop.translateX = cropDragStart.translateX + (e.clientX - cropDragStart.x);
+    crop.translateY = cropDragStart.translateY + (e.clientY - cropDragStart.y);
+    updateCropTransform();
+  });
+
+  function endCropDrag(e) {
+    if (cropDragPointerId === e.pointerId) {
+      cropDragPointerId = null;
+      cropDragStart = null;
+    }
+  }
+  cropViewport.addEventListener("pointerup", endCropDrag);
+  cropViewport.addEventListener("pointercancel", endCropDrag);
+
+  cropCancelBtn.addEventListener("click", () => closeCropper(null));
+
+  cropModal.addEventListener("click", (e) => {
+    if (e.target === cropModal) closeCropper(null);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !cropModal.hidden) closeCropper(null);
+  });
+
+  cropConfirmBtn.addEventListener("click", () => {
+    if (!crop) return;
+    const scale = crop.baseScale * crop.zoom;
+    const sSize = crop.viewportSize / scale;
+    const sx = -crop.translateX / scale;
+    const sy = -crop.translateY / scale;
+    const canvas = document.createElement("canvas");
+    canvas.width = OUTPUT_THUMB_SIZE;
+    canvas.height = OUTPUT_THUMB_SIZE;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(cropImageEl, sx, sy, sSize, sSize, 0, 0, OUTPUT_THUMB_SIZE, OUTPUT_THUMB_SIZE);
+    canvas.toBlob((blob) => closeCropper(blob), "image/webp", THUMB_WEBP_QUALITY);
+  });
+
+  async function uploadCroppedThumb(blob) {
     setStatus("Uploading thumbnail…");
     try {
-      const upload = await prepareThumbnail(file);
+      const ext = blob.type === "image/webp" ? "webp" : blob.type === "image/png" ? "png" : "jpg";
       const body = new FormData();
-      body.append("file", upload, upload === file ? file.name : "thumbnail.webp");
+      body.append("file", blob, `thumbnail.${ext}`);
       const res = await fetch("/api/admin/upload", { method: "POST", body });
       if (!res.ok) throw new Error(`upload ${res.status}`);
       const { url } = await res.json();
       form.dataset.heroImage = url;
       form.querySelector("[data-field='heroImagePreview']").style.backgroundImage = `url('${url}')`;
+      recropBtn.hidden = false;
       setStatus("Thumbnail uploaded.");
     } catch (err) {
       setStatus("Thumbnail upload failed.", "error");
     }
+  }
+
+  const fileInput = form.querySelector("input[type='file']");
+  const recropBtn = form.querySelector("[data-action='recrop']");
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    fileInput.value = "";
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    const blob = await openCropper(objectUrl);
+    URL.revokeObjectURL(objectUrl);
+    if (!blob) return;
+    await uploadCroppedThumb(blob);
+  });
+
+  recropBtn.addEventListener("click", async () => {
+    const current = form.dataset.heroImage;
+    if (!current) return;
+    const blob = await openCropper(current);
+    if (!blob) return;
+    await uploadCroppedThumb(blob);
   });
 
   async function findExisting(slug) {

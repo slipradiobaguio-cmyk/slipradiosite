@@ -141,7 +141,10 @@
         <div>
           <label>Hero image</label>
           <div class="admin-form__thumb-preview" data-field="heroImagePreview"></div>
-          <input type="file" accept="image/*">
+          <div class="admin-form__thumb-actions">
+            <input type="file" accept="image/*">
+            <button type="button" class="btn" data-action="recrop" hidden>Adjust crop</button>
+          </div>
         </div>
         <div class="admin-list__actions">
           <button type="submit" class="btn btn--primary">Save</button>
@@ -226,6 +229,20 @@
       </div>
     </section>
   </main>
+
+  <div class="crop-modal" data-crop-modal hidden>
+    <div class="crop-modal__dialog">
+      <p class="crop-modal__title">Crop photo</p>
+      <div class="crop-modal__viewport" data-crop-viewport>
+        <img class="crop-modal__image" data-crop-image alt="" draggable="false">
+      </div>
+      <input type="range" class="crop-modal__zoom" data-crop-zoom min="1" max="3" step="0.01" value="1" aria-label="Zoom">
+      <div class="crop-modal__actions">
+        <button type="button" class="btn" data-action="crop-cancel">Cancel</button>
+        <button type="button" class="btn btn--primary" data-action="crop-confirm">Use photo</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/js/no-zoom.js?v=2" defer></script>
   <script src="/js/admin.js?v=2" defer></script>
