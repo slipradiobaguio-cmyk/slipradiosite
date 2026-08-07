@@ -92,7 +92,6 @@
         if (bar.dataset.state !== "offline") return;
         if (show) {
           titleEl.textContent = `On air ${formatNextDate(show.date)}`;
-          artistEl.textContent = show.title || "";
         }
       });
     } else if (state === "loading") {
