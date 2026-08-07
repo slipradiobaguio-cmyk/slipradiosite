@@ -99,10 +99,6 @@
   border-top: 1px solid var(--color-border);
 }
 
-.shows-index > .show-row:last-child {
-  border-bottom: 1px solid var(--color-border);
-}
-
 @media (min-width: 768px) {
   .show-row {
     gap: 1.25rem;
@@ -225,6 +221,15 @@
   .show-row__desc {
     font-size: 0.83rem;
     -webkit-line-clamp: 2;
+  }
+}
+
+/* two-column rows leave more height per description before the thumbnail
+   runs out, so let it run three lines before truncating */
+@media (min-width: 1440px) {
+  .show-row__desc {
+    font-size: 0.85rem;
+    -webkit-line-clamp: 3;
   }
 }
 
