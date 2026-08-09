@@ -14,6 +14,24 @@
   <link rel="stylesheet" href="/css/gate.css?v=2">
 </head>
 <body class="theme-dark">
+  <div class="announce-bar" data-announce="dj-program-03">
+    <div class="announce-bar__track">
+      <a class="announce-bar__seg" href="/program">Guest DJ applications are open. <span class="announce-bar__cta">Apply for the program.</span></a>
+    </div>
+    <button class="announce-bar__close" type="button" aria-label="Dismiss announcement">✕</button>
+  </div>
+  <script>
+    (function () {
+      var bar = document.currentScript.previousElementSibling;
+      var id = bar.getAttribute("data-announce");
+      var key = "sr_announce_dismissed";
+      if (localStorage.getItem(key) === id) { bar.remove(); return; }
+      bar.querySelector(".announce-bar__close").addEventListener("click", function () {
+        localStorage.setItem(key, id);
+        bar.remove();
+      });
+    })();
+  </script>
   <header class="site-header container">
     <a href="/" class="site-logo" data-nav-link>
       <img src="/assets/icons/logo.png" alt="Slip Radio" class="site-logo__img">
