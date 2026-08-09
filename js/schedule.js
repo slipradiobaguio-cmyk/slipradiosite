@@ -70,6 +70,7 @@
       const todaysShows = shows
         .filter((show) => show.date === today)
         .map((show) => ({ show, range: parseTimeRange(show.time) }))
+        .filter(({ range }) => !range || nowMin < range.endMin)
         .sort((a, b) => (a.range?.startMin ?? 0) - (b.range?.startMin ?? 0));
 
       const upcomingShows = shows
