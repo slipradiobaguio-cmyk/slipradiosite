@@ -1139,35 +1139,22 @@ body.theme-dark .now-playing {
   color: var(--color-muted);
 }
 
-/* guest DJ program announcement ticker */
+/* guest DJ program announcement bar */
 
 .announce-bar {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--color-bg-inverse);
   color: var(--color-text-inverse);
   font-family: var(--font-mono);
-  overflow: hidden;
   min-height: 38px;
-}
-
-.announce-bar__track {
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-  white-space: nowrap;
-  animation: announce-slide 18s linear infinite;
-}
-
-.announce-bar:hover .announce-bar__track {
-  animation-play-state: paused;
+  padding-inline: 2.5rem;
+  text-align: center;
 }
 
 .announce-bar__seg {
-  display: inline-flex;
-  align-items: center;
-  padding-inline: var(--page-gutter);
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1202,7 +1189,6 @@ body.theme-dark .now-playing {
   font-size: 0.8rem;
   line-height: 1;
   color: var(--color-muted);
-  background: var(--color-bg-inverse);
 }
 
 .announce-bar__close:hover {
@@ -1212,21 +1198,4 @@ body.theme-dark .now-playing {
 .announce-bar__close:focus-visible {
   outline: 2px solid var(--color-text-inverse);
   outline-offset: 2px;
-}
-
-@keyframes announce-slide {
-  from {
-    left: 100%;
-  }
-  to {
-    left: -100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .announce-bar__track {
-    animation: none;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
 }
