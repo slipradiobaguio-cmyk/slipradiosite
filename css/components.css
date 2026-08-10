@@ -1162,6 +1162,17 @@ body.theme-dark .now-playing {
   text-decoration: none;
 }
 
+@media (max-width: 767px) {
+  .announce-bar {
+    padding-inline: 0.75rem;
+  }
+
+  .announce-bar__seg {
+    font-size: 0.56rem;
+    letter-spacing: 0.02em;
+  }
+}
+
 .announce-bar__cta {
   margin-left: 0.4em;
   text-decoration: underline;
