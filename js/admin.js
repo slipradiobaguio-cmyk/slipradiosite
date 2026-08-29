@@ -278,6 +278,11 @@
   }
 
   const SETUP_LABELS = { digital: "Digital", vinyl: "Vinyl", hybrid: "Hybrid" };
+  const SETUP_RIGS = {
+    digital: "Digital — XDJ-1000MK2 (2x) + XONE:96",
+    vinyl: "Vinyl — AT-LP120X (2x) + XONE:96",
+    hybrid: "Hybrid — Digital + Vinyl",
+  };
 
   // personalized per submission + its current status, so the compose panel
   // opens with a relevant draft instead of a blank/generic one every time
@@ -315,6 +320,7 @@
         ${row("loc", escapeHtml(sub.location))}
         ${row("ig", escapeHtml(sub.instagram))}
         ${row("genres", escapeHtml(sub.genres))}
+        ${sub.setup ? row("set-up", escapeHtml(SETUP_RIGS[sub.setup] || sub.setup)) : ""}
         ${sub.mixLink ? row("mix", `<a href="${escapeHtml(sub.mixLink)}" target="_blank" rel="noopener">${escapeHtml(sub.mixLink)} ↗</a>`) : ""}
         ${sub.photoUrl ? row("photo", `<a href="${escapeHtml(sub.photoUrl)}" download="${escapeHtml(sub.djName)}-photo.${escapeHtml(photoExt)}">Download ↓</a>`) : ""}
         ${row("bio", `&ldquo;${escapeHtml(sub.bio)}&rdquo;`)}
