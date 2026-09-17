@@ -561,6 +561,12 @@ body.theme-dark .now-playing {
   align-items: flex-end;
 }
 
+/* chat.js adds this while the mobile panel is expanded, so the page
+   can't scroll the pinned header out from under it */
+body.chat-expanded {
+  overflow: hidden;
+}
+
 .chat-fab {
   width: 44px;
   height: 44px;
@@ -702,6 +708,29 @@ body.theme-dark .now-playing {
 
 .chat-panel__icon-btn:active {
   transform: scale(0.88);
+}
+
+.chat-panel__icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.chat-panel__expand-btn .icon-collapse {
+  display: none;
+}
+
+.chat-widget[data-expanded="true"] .chat-panel__expand-btn .icon-expand {
+  display: none;
+}
+
+.chat-widget[data-expanded="true"] .chat-panel__expand-btn .icon-collapse {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .chat-panel__expand-btn {
+    display: none;
+  }
 }
 
 .chat-feed {
@@ -937,6 +966,26 @@ body.theme-dark .now-playing {
 
   .chat-fab {
     align-self: flex-end;
+  }
+
+  /* expanded state — chat.js locks body scroll and sets --chat-expand-top
+     to the measured height of whatever sits above the viewport (site
+     header, plus the dismissible announce bar when it's still showing),
+     so the panel starts exactly below it instead of a hardcoded height */
+  .chat-widget[data-expanded="true"] {
+    top: var(--chat-expand-top, 0px);
+    left: 0;
+    right: 0;
+    bottom: var(--nowplaying-height);
+  }
+
+  .chat-widget[data-expanded="true"] .chat-panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    box-shadow: none;
   }
 }
 

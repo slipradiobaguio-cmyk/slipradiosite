@@ -12,6 +12,7 @@
   const fab = widget.querySelector(".chat-fab");
   const badge = widget.querySelector("[data-chat-badge]");
   const closeBtn = widget.querySelector("[data-chat-close]");
+  const expandBtn = widget.querySelector("[data-chat-expand]");
   const feed = widget.querySelector("[data-chat-feed]");
   const input = widget.querySelector("[data-chat-input]");
   const actionBtn = widget.querySelector("[data-chat-action]");
@@ -274,6 +275,26 @@
   const CLOSE_ANIM_MS = 220;
   let closeTimer = null;
 
+  // measures whatever currently sits above the viewport (site header,
+  // plus the dismissible announce bar when it hasn't been closed yet)
+  // so the expanded panel starts right under it instead of a guessed height
+  function measureExpandTop() {
+    const header = document.querySelector(".site-header");
+    return header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+  }
+
+  function setExpanded(expanded) {
+    widget.dataset.expanded = expanded ? "true" : "false";
+    expandBtn.setAttribute("aria-label", expanded ? "Collapse chat" : "Expand chat");
+    if (expanded) {
+      window.scrollTo(0, 0);
+      document.documentElement.style.setProperty("--chat-expand-top", `${measureExpandTop()}px`);
+      document.body.classList.add("chat-expanded");
+    } else {
+      document.body.classList.remove("chat-expanded");
+    }
+  }
+
   function openWidget() {
     if (closeTimer) {
       clearTimeout(closeTimer);
@@ -290,6 +311,7 @@
     if (widget.dataset.open !== "true") return;
     widget.dataset.open = "false";
     widget.dataset.closing = "true";
+    setExpanded(false);
     if (closeTimer) clearTimeout(closeTimer);
     closeTimer = window.setTimeout(() => {
       widget.removeAttribute("data-closing");
@@ -299,6 +321,7 @@
 
   fab.addEventListener("click", openWidget);
   closeBtn.addEventListener("click", closeWidget);
+  expandBtn.addEventListener("click", () => setExpanded(widget.dataset.expanded !== "true"));
   actionBtn.addEventListener("click", handleAction);
   feed.addEventListener("click", (e) => {
     const head = e.target.closest(".chat-day__head");
