@@ -178,7 +178,8 @@ body.theme-dark .nav-drawer__row {
 
 .site-footer {
   border-top: 1px solid var(--color-border);
-  padding-block: var(--space-lg);
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-md);
   margin-top: var(--space-md);
   display: flex;
   flex-direction: column;
