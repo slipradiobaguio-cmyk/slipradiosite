@@ -70,27 +70,42 @@ function toMessage(row) {
 
 // after=0 (or omitted) -> most recent page, newest last
 // after=<id> -> everything newer than that id, for polling
+// before=<id> -> the page immediately older than that id, for scrolling back through history
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const after = Number(url.searchParams.get("after")) || 0;
+  const before = Number(url.searchParams.get("before")) || 0;
 
-  const rows =
-    after > 0
-      ? await env.CHAT.prepare(
-          "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE id > ?1 AND deleted_at IS NULL ORDER BY id ASC LIMIT ?2"
-        )
-          .bind(after, PAGE_SIZE)
-          .all()
-      : await env.CHAT.prepare(
-          "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE deleted_at IS NULL ORDER BY id DESC LIMIT ?1"
-        )
-          .bind(PAGE_SIZE)
-          .all();
+  let rows;
+  if (after > 0) {
+    rows = await env.CHAT.prepare(
+      "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE id > ?1 AND deleted_at IS NULL ORDER BY id ASC LIMIT ?2"
+    )
+      .bind(after, PAGE_SIZE)
+      .all();
+  } else if (before > 0) {
+    rows = await env.CHAT.prepare(
+      "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE id < ?1 AND deleted_at IS NULL ORDER BY id DESC LIMIT ?2"
+    )
+      .bind(before, PAGE_SIZE)
+      .all();
+  } else {
+    rows = await env.CHAT.prepare(
+      "SELECT id, name, body, is_dj, is_system, created_at FROM messages WHERE deleted_at IS NULL ORDER BY id DESC LIMIT ?1"
+    )
+      .bind(PAGE_SIZE)
+      .all();
+  }
 
   const ordered = after > 0 ? rows.results : rows.results.reverse();
   const latest = await env.CHAT.prepare("SELECT MAX(id) AS id FROM messages").first();
 
-  return jsonResponse({ messages: ordered.map(toMessage), latestId: latest?.id || 0 });
+  // hitting the page cap means there's likely more in that direction to fetch
+  return jsonResponse({
+    messages: ordered.map(toMessage),
+    latestId: latest?.id || 0,
+    hasMore: rows.results.length === PAGE_SIZE,
+  });
 }
 
 export async function onRequestPost({ request, env }) {

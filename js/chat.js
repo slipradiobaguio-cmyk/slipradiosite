@@ -91,6 +91,13 @@
   let currentDayKey = null;
   let currentContainer = null;
 
+  // tracks the oldest day group currently in the feed, so scrolling to the
+  // top can fetch older history and prepend it in the right place: merged
+  // into this group if it's the same day, or as a new collapsed group before it
+  let earliestDayKey = null;
+  let earliestRowsEl = null;
+  let earliestAnchorEl = null;
+
   function dayKeyOf(createdAt) {
     const d = new Date(createdAt);
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -113,6 +120,8 @@
     currentContainer.className = "chat-day__rows";
     dayGroup.appendChild(currentContainer);
     feed.insertBefore(dayGroup, null);
+
+    if (currentContainer === earliestRowsEl) earliestAnchorEl = dayGroup;
   }
 
   function ensureCurrentContainer(msg) {
@@ -126,7 +135,53 @@
     currentContainer.dataset.label = dayLabelOf(msg.createdAt);
     feed.appendChild(currentContainer);
     currentDayKey = dayKey;
+
+    if (!earliestRowsEl) {
+      earliestDayKey = dayKey;
+      earliestRowsEl = currentContainer;
+      earliestAnchorEl = currentContainer;
+    }
     return currentContainer;
+  }
+
+  // messages ascending oldest -> newest, all older than anything already
+  // loaded (guaranteed by the `before` query). Walk backwards in same-day
+  // chunks so each chunk lands right before the current earliest group.
+  function prependMessages(messages) {
+    let i = messages.length - 1;
+    while (i >= 0) {
+      const dayKey = dayKeyOf(messages[i].createdAt);
+      let j = i;
+      while (j >= 0 && dayKeyOf(messages[j].createdAt) === dayKey) j--;
+      const dayMessages = messages.slice(j + 1, i + 1);
+
+      if (dayKey === earliestDayKey) {
+        const frag = document.createDocumentFragment();
+        dayMessages.forEach((msg) => frag.appendChild(buildMessageNode(msg, false)));
+        earliestRowsEl.insertBefore(frag, earliestRowsEl.firstChild);
+      } else {
+        const rows = document.createElement("div");
+        rows.className = "chat-day__rows";
+        dayMessages.forEach((msg) => rows.appendChild(buildMessageNode(msg, false)));
+
+        const dayGroup = document.createElement("div");
+        dayGroup.className = "chat-day";
+        dayGroup.dataset.open = "false";
+        dayGroup.innerHTML = `
+          <button type="button" class="chat-day__head">
+            <span class="chat-day__date">${dayLabelOf(dayMessages[0].createdAt)}</span>
+            <span class="chat-day__chevron" aria-hidden="true">▾</span>
+          </button>
+        `;
+        dayGroup.appendChild(rows);
+        feed.insertBefore(dayGroup, earliestAnchorEl);
+
+        earliestDayKey = dayKey;
+        earliestRowsEl = rows;
+        earliestAnchorEl = dayGroup;
+      }
+      i = j;
+    }
   }
 
   function buildMessageNode(msg, mine) {
@@ -177,6 +232,48 @@
     feed.scrollTop = feed.scrollHeight;
   }
 
+  let firstId = 0;
+  let hasMoreOlder = true;
+  let loadingOlder = false;
+
+  function showOlderLoadingState() {
+    if (feed.querySelector(".chat-feed__loading-older")) return;
+    const el = document.createElement("div");
+    el.className = "chat-feed__loading-older";
+    el.textContent = "loading earlier messages…";
+    feed.insertBefore(el, feed.firstChild);
+  }
+
+  function hideOlderLoadingState() {
+    const el = feed.querySelector(".chat-feed__loading-older");
+    if (el) el.remove();
+  }
+
+  async function loadOlder() {
+    if (loadingOlder || !hasMoreOlder || !firstId) return;
+    loadingOlder = true;
+    showOlderLoadingState();
+    try {
+      const res = await fetch(`/api/chat?before=${firstId}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      hasMoreOlder = Boolean(data.hasMore);
+      hideOlderLoadingState();
+      if (data.messages.length) {
+        const prevScrollHeight = feed.scrollHeight;
+        const prevScrollTop = feed.scrollTop;
+        prependMessages(data.messages);
+        firstId = data.messages[0].id;
+        feed.scrollTop = prevScrollTop + (feed.scrollHeight - prevScrollHeight);
+      }
+    } catch (err) {
+      // network hiccup — next scroll-to-top retries
+    } finally {
+      loadingOlder = false;
+      hideOlderLoadingState();
+    }
+  }
+
   async function loadInitial() {
     try {
       const res = await fetch("/api/chat", { cache: "no-store" });
@@ -186,7 +283,9 @@
         showFeedEmptyState();
       } else {
         data.messages.forEach((msg) => renderMessage(msg, false));
+        firstId = data.messages[0].id;
       }
+      hasMoreOlder = Boolean(data.hasMore);
       lastId = data.latestId || lastId;
       scrollToBottom();
     } catch (err) {
@@ -328,6 +427,9 @@
     if (!head) return;
     const group = head.closest(".chat-day");
     group.dataset.open = group.dataset.open === "true" ? "false" : "true";
+  });
+  feed.addEventListener("scroll", () => {
+    if (feed.scrollTop < 48) loadOlder();
   });
   input.addEventListener("input", updateActionUI);
   input.addEventListener("keydown", (e) => {
