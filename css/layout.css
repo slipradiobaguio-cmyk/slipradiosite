@@ -179,7 +179,7 @@ body.theme-dark .nav-drawer__row {
 .site-footer {
   border-top: 1px solid var(--color-border);
   padding-block: var(--space-lg);
-  margin-top: var(--space-xl);
+  margin-top: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -202,8 +202,9 @@ body.theme-dark .nav-drawer__row {
 .site-footer__credit {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-md);
-  text-align: center;
-  font-weight: 300;
+  text-align: right;
+  font-size: 0.6875rem;
+  color: color-mix(in srgb, var(--color-muted) 55%, white);
   text-decoration: underline;
   text-decoration-color: var(--color-border);
   text-underline-offset: 3px;
@@ -216,6 +217,10 @@ body.theme-dark .nav-drawer__row {
 }
 
 @media (min-width: 768px) {
+  .site-footer {
+    margin-top: var(--space-xl);
+  }
+
   .site-footer__row {
     flex-direction: row;
     align-items: center;
