@@ -567,6 +567,12 @@ body.chat-expanded {
   overflow: hidden;
 }
 
+/* the burger opens a nav drawer that doesn't make sense mid-chat —
+   hidden only while expanded, back as soon as chat collapses or closes */
+body.chat-expanded .nav-burger {
+  display: none;
+}
+
 .chat-fab {
   width: 44px;
   height: 44px;
@@ -974,6 +980,12 @@ body.chat-expanded {
 
   .chat-fab {
     align-self: flex-end;
+  }
+
+  /* mobile keeps only the expand/collapse box — desktop's small fixed
+     panel still relies on this button to close */
+  [data-chat-close] {
+    display: none;
   }
 
   /* expanded state — chat.js locks body scroll and sets --chat-expand-top

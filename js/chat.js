@@ -384,7 +384,10 @@
 
   function setExpanded(expanded) {
     widget.dataset.expanded = expanded ? "true" : "false";
-    expandBtn.setAttribute("aria-label", expanded ? "Collapse chat" : "Expand chat");
+    // expanded state's icon doubles as "close" — tapping it never drops
+    // back to the small panel, it closes the whole widget (see the click
+    // handler below), so the label should say what actually happens
+    expandBtn.setAttribute("aria-label", expanded ? "Close chat" : "Expand chat");
     if (expanded) {
       window.scrollTo(0, 0);
       document.documentElement.style.setProperty("--chat-expand-top", `${measureExpandTop()}px`);
@@ -420,7 +423,15 @@
 
   fab.addEventListener("click", openWidget);
   closeBtn.addEventListener("click", closeWidget);
-  expandBtn.addEventListener("click", () => setExpanded(widget.dataset.expanded !== "true"));
+  expandBtn.addEventListener("click", () => {
+    // small panel -> expand; expanded -> close outright (skips back to
+    // the small panel on purpose, since the close button is gone on mobile)
+    if (widget.dataset.expanded === "true") {
+      closeWidget();
+    } else {
+      setExpanded(true);
+    }
+  });
   actionBtn.addEventListener("click", handleAction);
   feed.addEventListener("click", (e) => {
     const head = e.target.closest(".chat-day__head");
