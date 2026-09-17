@@ -750,6 +750,14 @@ body.chat-expanded {
   text-align: center;
 }
 
+.chat-feed__loading-older {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--color-muted);
+  text-align: center;
+  padding: 0.2rem 0;
+}
+
 .chat-msg--system {
   text-align: left;
   font-family: var(--font-mono);
