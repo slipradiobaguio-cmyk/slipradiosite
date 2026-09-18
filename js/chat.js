@@ -17,6 +17,7 @@
   const input = widget.querySelector("[data-chat-input]");
   const actionBtn = widget.querySelector("[data-chat-action]");
   const reminder = widget.querySelector(".chat-reminder");
+  const jumpBtn = widget.querySelector("[data-chat-jump]");
   const REMINDER_DURATION_MS = 10000;
   const MOBILE_QUERY = window.matchMedia("(max-width: 767.98px)");
 
@@ -236,43 +237,57 @@
   let firstId = 0;
   let hasMoreOlder = true;
   let loadingOlder = false;
+  let olderControlEl = null;
 
-  function showOlderLoadingState() {
-    if (feed.querySelector(".chat-feed__loading-older")) return;
-    const el = document.createElement("div");
-    el.className = "chat-feed__loading-older";
-    el.textContent = "loading earlier messages…";
-    feed.insertBefore(el, feed.firstChild);
-  }
-
-  function hideOlderLoadingState() {
-    const el = feed.querySelector(".chat-feed__loading-older");
-    if (el) el.remove();
+  // tapped, not auto-triggered by scroll — a short list of collapsed
+  // headers loading in one go read as a wall dumped on the user, not a
+  // natural reveal
+  function ensureOlderControl() {
+    if (!hasMoreOlder || olderControlEl) return;
+    olderControlEl = document.createElement("button");
+    olderControlEl.type = "button";
+    olderControlEl.className = "chat-feed__older";
+    olderControlEl.textContent = "Show earlier messages";
+    olderControlEl.addEventListener("click", loadOlder);
+    feed.insertBefore(olderControlEl, feed.firstChild);
   }
 
   async function loadOlder() {
     if (loadingOlder || !hasMoreOlder || !firstId) return;
     loadingOlder = true;
-    showOlderLoadingState();
+    if (olderControlEl) {
+      olderControlEl.disabled = true;
+      olderControlEl.textContent = "Loading…";
+    }
     try {
       const res = await fetch(`/api/chat?before=${firstId}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       hasMoreOlder = Boolean(data.hasMore);
-      hideOlderLoadingState();
       if (data.messages.length) {
         const prevScrollHeight = feed.scrollHeight;
         const prevScrollTop = feed.scrollTop;
         prependMessages(data.messages);
         firstId = data.messages[0].id;
         feed.scrollTop = prevScrollTop + (feed.scrollHeight - prevScrollHeight);
+        updateJumpVisibility();
       }
     } catch (err) {
-      // network hiccup — next scroll-to-top retries
+      // network hiccup — tapping the control again retries
     } finally {
       loadingOlder = false;
-      hideOlderLoadingState();
+      if (!hasMoreOlder && olderControlEl) {
+        olderControlEl.remove();
+        olderControlEl = null;
+      } else if (olderControlEl) {
+        olderControlEl.disabled = false;
+        olderControlEl.textContent = "Show earlier messages";
+      }
     }
+  }
+
+  function updateJumpVisibility() {
+    jumpBtn.hidden = isScrolledToBottom();
   }
 
   async function loadInitial() {
@@ -287,6 +302,7 @@
         firstId = data.messages[0].id;
       }
       hasMoreOlder = Boolean(data.hasMore);
+      ensureOlderControl();
       lastId = data.latestId || lastId;
       scrollToBottom();
     } catch (err) {
@@ -306,6 +322,7 @@
 
       if (widget.dataset.open === "true") {
         if (wasAtBottom) scrollToBottom();
+        else updateJumpVisibility();
       } else {
         setUnread(unread + data.messages.length);
       }
@@ -330,6 +347,7 @@
       const data = await res.json();
       data.messages.forEach((msg, i) => renderMessage(msg, i === data.messages.length - 1));
       scrollToBottom();
+      updateJumpVisibility();
     } catch (err) {
       input.value = text;
       updateActionUI();
@@ -412,6 +430,7 @@
     widget.dataset.open = "true";
     setUnread(0);
     scrollToBottom();
+    updateJumpVisibility();
     if (MOBILE_QUERY.matches) {
       // mobile skips the small panel entirely and opens straight to
       // full-screen — don't auto-focus there, it pops the keyboard
@@ -452,8 +471,10 @@
     const group = head.closest(".chat-day");
     group.dataset.open = group.dataset.open === "true" ? "false" : "true";
   });
-  feed.addEventListener("scroll", () => {
-    if (feed.scrollTop < 48) loadOlder();
+  feed.addEventListener("scroll", updateJumpVisibility);
+  jumpBtn.addEventListener("click", () => {
+    scrollToBottom();
+    updateJumpVisibility();
   });
   input.addEventListener("input", updateActionUI);
   input.addEventListener("keydown", (e) => {
