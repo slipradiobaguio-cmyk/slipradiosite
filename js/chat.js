@@ -86,16 +86,16 @@
     return Math.abs(hash) % AVATAR_TINTS;
   }
 
-  // the log is split into per-day groups so a long history doesn't read as
-  // one endless wall — only the most recent day renders flat with no header,
-  // matching today's chat exactly; anything older gets a date divider that's
-  // visible right away but starts collapsed, expandable by clicking it
+  // the log is split into per-day segments so a long history doesn't read
+  // as one endless wall — only the most recent day renders flat with no
+  // label, matching today's chat exactly; anything older gets a plain date
+  // label above it as it's revealed, no grouping or collapsing
   let currentDayKey = null;
   let currentContainer = null;
 
-  // tracks the oldest day group currently in the feed, so scrolling to the
-  // top can fetch older history and prepend it in the right place: merged
-  // into this group if it's the same day, or as a new collapsed group before it
+  // tracks the oldest day segment currently in the feed, so scrolling to
+  // the top can fetch older history and prepend it in the right place:
+  // merged into this segment if it's the same day, or as a new one before it
   let earliestDayKey = null;
   let earliestRowsEl = null;
   let earliestAnchorEl = null;
@@ -112,15 +112,11 @@
   function freezeCurrentIntoDayGroup() {
     const dayGroup = document.createElement("div");
     dayGroup.className = "chat-day";
-    dayGroup.dataset.open = "false";
-    dayGroup.innerHTML = `
-      <button type="button" class="chat-day__head">
-        <span class="chat-day__date">${currentContainer.dataset.label}</span>
-        <span class="chat-day__chevron" aria-hidden="true">▾</span>
-      </button>
-    `;
+    const label = document.createElement("div");
+    label.className = "chat-day__label";
+    label.textContent = currentContainer.dataset.label;
     currentContainer.className = "chat-day__rows";
-    dayGroup.appendChild(currentContainer);
+    dayGroup.append(label, currentContainer);
     feed.insertBefore(dayGroup, null);
 
     if (currentContainer === earliestRowsEl) earliestAnchorEl = dayGroup;
@@ -168,14 +164,10 @@
 
         const dayGroup = document.createElement("div");
         dayGroup.className = "chat-day";
-        dayGroup.dataset.open = "false";
-        dayGroup.innerHTML = `
-          <button type="button" class="chat-day__head">
-            <span class="chat-day__date">${dayLabelOf(dayMessages[0].createdAt)}</span>
-            <span class="chat-day__chevron" aria-hidden="true">▾</span>
-          </button>
-        `;
-        dayGroup.appendChild(rows);
+        const label = document.createElement("div");
+        label.className = "chat-day__label";
+        label.textContent = dayLabelOf(dayMessages[0].createdAt);
+        dayGroup.append(label, rows);
         feed.insertBefore(dayGroup, earliestAnchorEl);
 
         earliestDayKey = dayKey;
@@ -270,7 +262,6 @@
         prependMessages(data.messages);
         firstId = data.messages[0].id;
         feed.scrollTop = prevScrollTop + (feed.scrollHeight - prevScrollHeight);
-        updateJumpVisibility();
       }
     } catch (err) {
       // network hiccup — tapping the control again retries
@@ -286,8 +277,28 @@
     }
   }
 
-  function updateJumpVisibility() {
-    jumpBtn.hidden = isScrolledToBottom();
+  const JUMP_IDLE_MS = 900;
+  let jumpHideTimer = null;
+
+  function hideJumpBtn() {
+    jumpBtn.hidden = true;
+    if (jumpHideTimer) {
+      clearTimeout(jumpHideTimer);
+      jumpHideTimer = null;
+    }
+  }
+
+  // the arrow tracks active backreading only — it appears while scrolling
+  // away from the bottom and fades back out shortly after the scroll
+  // stops, rather than sitting on screen for the whole time you're up there
+  function handleFeedScroll() {
+    if (isScrolledToBottom()) {
+      hideJumpBtn();
+      return;
+    }
+    jumpBtn.hidden = false;
+    if (jumpHideTimer) clearTimeout(jumpHideTimer);
+    jumpHideTimer = window.setTimeout(hideJumpBtn, JUMP_IDLE_MS);
   }
 
   async function loadInitial() {
@@ -322,7 +333,6 @@
 
       if (widget.dataset.open === "true") {
         if (wasAtBottom) scrollToBottom();
-        else updateJumpVisibility();
       } else {
         setUnread(unread + data.messages.length);
       }
@@ -347,7 +357,7 @@
       const data = await res.json();
       data.messages.forEach((msg, i) => renderMessage(msg, i === data.messages.length - 1));
       scrollToBottom();
-      updateJumpVisibility();
+      hideJumpBtn();
     } catch (err) {
       input.value = text;
       updateActionUI();
@@ -430,7 +440,7 @@
     widget.dataset.open = "true";
     setUnread(0);
     scrollToBottom();
-    updateJumpVisibility();
+    hideJumpBtn();
     if (MOBILE_QUERY.matches) {
       // mobile skips the small panel entirely and opens straight to
       // full-screen — don't auto-focus there, it pops the keyboard
@@ -465,16 +475,10 @@
     }
   });
   actionBtn.addEventListener("click", handleAction);
-  feed.addEventListener("click", (e) => {
-    const head = e.target.closest(".chat-day__head");
-    if (!head) return;
-    const group = head.closest(".chat-day");
-    group.dataset.open = group.dataset.open === "true" ? "false" : "true";
-  });
-  feed.addEventListener("scroll", updateJumpVisibility);
+  feed.addEventListener("scroll", handleFeedScroll);
   jumpBtn.addEventListener("click", () => {
     scrollToBottom();
-    updateJumpVisibility();
+    hideJumpBtn();
   });
   input.addEventListener("input", updateActionUI);
   input.addEventListener("keydown", (e) => {
