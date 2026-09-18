@@ -73,9 +73,11 @@
         .filter(({ range }) => !range || nowMin < range.endMin)
         .sort((a, b) => (a.range?.startMin ?? 0) - (b.range?.startMin ?? 0));
 
-      const upcomingDates = [...new Set(shows.filter((show) => show.date > today).map((show) => show.date))]
-        .sort()
-        .slice(0, 2);
+      const nextUpcomingDate = shows
+        .filter((show) => show.date > today)
+        .map((show) => show.date)
+        .sort()[0];
+      const upcomingDates = nextUpcomingDate ? [nextUpcomingDate] : [];
 
       const upcomingShows = shows
         .filter((show) => upcomingDates.includes(show.date))
