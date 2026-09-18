@@ -73,13 +73,16 @@
         .filter(({ range }) => !range || nowMin < range.endMin)
         .sort((a, b) => (a.range?.startMin ?? 0) - (b.range?.startMin ?? 0));
 
+      const upcomingDates = [...new Set(shows.filter((show) => show.date > today).map((show) => show.date))]
+        .sort()
+        .slice(0, 2);
+
       const upcomingShows = shows
-        .filter((show) => show.date > today)
+        .filter((show) => upcomingDates.includes(show.date))
         .sort((a, b) => {
           if (a.date !== b.date) return a.date < b.date ? -1 : 1;
           return (parseTimeRange(a.time)?.startMin ?? 0) - (parseTimeRange(b.time)?.startMin ?? 0);
-        })
-        .slice(0, 5);
+        });
 
       if (!todaysShows.length && !upcomingShows.length) {
         container.innerHTML = `<p class="schedule__empty">No shows scheduled.</p>`;
