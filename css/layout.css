@@ -179,7 +179,7 @@ body.theme-dark .nav-drawer__row {
 .site-footer {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-lg);
-  padding-bottom: var(--space-md);
+  padding-bottom: var(--space-lg);
   margin-top: var(--space-md);
   display: flex;
   flex-direction: column;
@@ -202,7 +202,7 @@ body.theme-dark .nav-drawer__row {
 
 .site-footer__credit {
   border-top: 1px solid var(--color-border);
-  padding-top: var(--space-md);
+  padding-top: var(--space-xs);
   text-align: center;
   font-size: 0.6875rem;
   color: color-mix(in srgb, var(--color-muted) 55%, white);
@@ -219,7 +219,6 @@ body.theme-dark .nav-drawer__row {
 
 @media (min-width: 768px) {
   .site-footer {
-    padding-bottom: var(--space-lg);
     margin-top: var(--space-xl);
   }
 
