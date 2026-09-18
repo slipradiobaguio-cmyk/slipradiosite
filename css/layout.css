@@ -219,6 +219,7 @@ body.theme-dark .nav-drawer__row {
 
 @media (min-width: 768px) {
   .site-footer {
+    padding-bottom: var(--space-lg);
     margin-top: var(--space-xl);
   }
 
