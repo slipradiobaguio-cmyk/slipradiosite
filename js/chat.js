@@ -226,6 +226,14 @@
     feed.scrollTop = feed.scrollHeight;
   }
 
+  // a deliberate jump back to the latest messages reads better as the
+  // thread sliding into place than as an instant cut — everywhere else
+  // (initial load, sending, opening) still snaps, since animating those
+  // would just make ordinary actions feel sluggish
+  function slideToBottom() {
+    feed.scrollTo({ top: feed.scrollHeight, behavior: "smooth" });
+  }
+
   let firstId = 0;
   let hasMoreOlder = true;
   let loadingOlder = false;
@@ -279,6 +287,7 @@
 
   const JUMP_IDLE_MS = 900;
   let jumpHideTimer = null;
+  let jumpSuppressed = false;
 
   function hideJumpBtn() {
     jumpBtn.hidden = true;
@@ -294,8 +303,13 @@
   function handleFeedScroll() {
     if (isScrolledToBottom()) {
       hideJumpBtn();
+      jumpSuppressed = false;
       return;
     }
+    // a smooth jump-to-latest passes through non-bottom scroll positions
+    // on its way down — ignore those so the arrow doesn't flicker back on
+    // during its own animation
+    if (jumpSuppressed) return;
     jumpBtn.hidden = false;
     if (jumpHideTimer) clearTimeout(jumpHideTimer);
     jumpHideTimer = window.setTimeout(hideJumpBtn, JUMP_IDLE_MS);
@@ -477,7 +491,8 @@
   actionBtn.addEventListener("click", handleAction);
   feed.addEventListener("scroll", handleFeedScroll);
   jumpBtn.addEventListener("click", () => {
-    scrollToBottom();
+    jumpSuppressed = true;
+    slideToBottom();
     hideJumpBtn();
   });
   input.addEventListener("input", updateActionUI);
