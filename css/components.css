@@ -561,10 +561,32 @@ body.theme-dark .now-playing {
   align-items: flex-end;
 }
 
-/* chat.js adds this while the mobile panel is expanded, so the page
-   can't scroll the pinned header out from under it */
+/* chat.js adds this while the mobile panel is expanded — background
+   scroll is locked, but the real guarantee that header/chat/player stay
+   put regardless of scroll position comes from pinning them below,
+   not from this alone (iOS Safari ignores plain overflow:hidden) */
 body.chat-expanded {
   overflow: hidden;
+}
+
+/* pinned in place while expanded so the chat panel (itself fixed,
+   inset between these two) always starts right where these end,
+   no matter where the page was scrolled when it was opened */
+body.chat-expanded .announce-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 23;
+}
+
+body.chat-expanded .site-header {
+  position: fixed;
+  top: var(--chat-announce-height, 0px);
+  left: 0;
+  right: 0;
+  z-index: 22;
+  background: var(--color-bg);
 }
 
 /* the burger opens a nav drawer that doesn't make sense mid-chat —

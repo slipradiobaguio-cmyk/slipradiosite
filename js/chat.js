@@ -375,12 +375,18 @@
   const CLOSE_ANIM_MS = 220;
   let closeTimer = null;
 
-  // measures whatever currently sits above the viewport (site header,
-  // plus the dismissible announce bar when it hasn't been closed yet)
-  // so the expanded panel starts right under it instead of a guessed height
+  // offsetHeight, not getBoundingClientRect — the header/announce bar get
+  // pinned with position:fixed the moment chat-expanded is added (see
+  // components.css), so their natural height is what matters, not their
+  // current on-screen position, which depends on wherever the page
+  // happened to be scrolled when chat was opened
   function measureExpandTop() {
+    const announce = document.querySelector(".announce-bar");
     const header = document.querySelector(".site-header");
-    return header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    const announceH = announce ? announce.offsetHeight : 0;
+    const headerH = header ? header.offsetHeight : 0;
+    document.documentElement.style.setProperty("--chat-announce-height", `${announceH}px`);
+    return announceH + headerH;
   }
 
   function setExpanded(expanded) {
@@ -390,7 +396,6 @@
     // handler below), so the label should say what actually happens
     expandBtn.setAttribute("aria-label", expanded ? "Close chat" : "Expand chat");
     if (expanded) {
-      window.scrollTo(0, 0);
       document.documentElement.style.setProperty("--chat-expand-top", `${measureExpandTop()}px`);
       document.body.classList.add("chat-expanded");
     } else {
@@ -407,9 +412,14 @@
     widget.dataset.open = "true";
     setUnread(0);
     scrollToBottom();
-    input.focus();
-    // mobile skips the small panel entirely and opens straight to full-screen
-    if (MOBILE_QUERY.matches) setExpanded(true);
+    if (MOBILE_QUERY.matches) {
+      // mobile skips the small panel entirely and opens straight to
+      // full-screen — don't auto-focus there, it pops the keyboard
+      // immediately on open, which nobody asked for
+      setExpanded(true);
+    } else {
+      input.focus();
+    }
   }
 
   function closeWidget() {
