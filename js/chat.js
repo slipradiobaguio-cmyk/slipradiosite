@@ -18,6 +18,7 @@
   const actionBtn = widget.querySelector("[data-chat-action]");
   const reminder = widget.querySelector(".chat-reminder");
   const REMINDER_DURATION_MS = 10000;
+  const MOBILE_QUERY = window.matchMedia("(max-width: 767.98px)");
 
   function getClientId() {
     let id = localStorage.getItem(CLIENT_KEY);
@@ -407,6 +408,8 @@
     setUnread(0);
     scrollToBottom();
     input.focus();
+    // mobile skips the small panel entirely and opens straight to full-screen
+    if (MOBILE_QUERY.matches) setExpanded(true);
   }
 
   function closeWidget() {
