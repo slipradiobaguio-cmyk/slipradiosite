@@ -568,6 +568,18 @@ body.theme-dark .now-playing {
   --chat-stagger-ms: 72;
   --chat-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --chat-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+
+  /* the nav tab strip that opens over the chat's header. it opens at the
+     same unhurried pace as the tray, and closes at the tray's own close
+     speed — never slower, so a tab tap (which closes both together) can't
+     leave the strip hanging over the page after the tray has gone */
+  --chat-menu-open-ms: 900;
+  --chat-menu-close-ms: 560;
+  --chat-menu-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* one number shared by the chat's own header and the tab strip that
+     covers it, so the two always match exactly */
+  --chat-head-h: 50px;
 }
 
 .chat-widget {
@@ -614,27 +626,66 @@ body.chat-expanded .site-header {
   background: var(--color-bg);
 }
 
-/* the burger opens a nav drawer that doesn't make sense mid-chat, so it's
-   taken out of play while expanded — but faded and made unreachable, never
-   display: none, which would collapse its space and slide the LIVE
-   indicator next to it sideways. it fades back in as the tray drops */
-body.chat-expanded .nav-burger {
-  opacity: 0;
+/* the burger stays put while the chat is open, so the header is identical
+   whether the chat is open or closed. its drawer (the four tabs) normally
+   sits in the page flow right under the header — which is exactly where the
+   chat window starts, so it would open hidden behind the chat. while the
+   chat is expanded it's lifted out of the flow and laid over just the chat's
+   own header strip instead: it slides out from under the site header and
+   covers the ● CHAT strip, and the messages and input never move or dim.
+   opening it changes nothing else on screen. */
+body.chat-expanded .nav-drawer {
+  position: fixed;
+  top: calc(var(--chat-expand-top, 0px) + 1px); /* +1: the panel's own top border */
+  left: 0;
+  right: 0;
+  z-index: 21; /* over the chat (19) and player (20), under the pinned header (22) */
+  max-height: none;
+  height: var(--chat-head-h);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  transform: translateY(calc(-100% - 1px));
   visibility: hidden;
-  pointer-events: none;
-  transition:
-    transform 0.1s ease-out,
-    opacity calc(var(--chat-open-ms) * 0.2ms) linear,
-    visibility 0s linear calc(var(--chat-open-ms) * 0.2ms);
+  transition: none;
 }
 
-body.chat-expanded:not(:has(.chat-widget[data-open="true"])) .nav-burger {
-  opacity: 1;
+body.chat-expanded .nav-drawer__row {
+  height: 100%;
+  padding: 0 0.75rem;
+  align-items: stretch;
+  border-top: 0;
+}
+
+/* the whole strip height is tappable, not just the text */
+body.chat-expanded .nav-drawer__row a {
+  display: flex;
+  align-items: center;
+}
+
+body.chat-expanded .nav-drawer[data-open="true"] {
+  transform: none;
   visibility: visible;
+}
+
+/* transitions are only switched on once chat.js adds chat-nav-ready, a beat
+   after the chat opens — otherwise the drawer's jump from its in-flow pose
+   to this lifted-out one would itself get animated, and eat the slide-in */
+body.chat-expanded.chat-nav-ready .nav-drawer {
   transition:
-    transform 0.1s ease-out,
-    opacity calc(var(--chat-close-ms) * 0.4ms) linear calc(var(--chat-close-ms) * 0.6ms),
-    visibility 0s linear calc(var(--chat-close-ms) * 0.6ms);
+    transform calc(var(--chat-menu-close-ms) * 1ms) var(--chat-menu-ease),
+    visibility 0s linear calc(var(--chat-menu-close-ms) * 1ms);
+}
+
+body.chat-expanded.chat-nav-ready .nav-drawer[data-open="true"] {
+  transition:
+    transform calc(var(--chat-menu-open-ms) * 1ms) var(--chat-menu-ease),
+    visibility 0s;
+}
+
+/* while the tray is dropping away the strip has nowhere sensible to open */
+body.chat-expanded:not(:has(.chat-widget[data-open="true"])) .nav-burger {
+  pointer-events: none;
 }
 
 /* when the page was scrolled, the header and announce bar weren't on
@@ -794,6 +845,30 @@ body.chat-pin-fade.chat-expanded:not(:has(.chat-widget[data-open="true"])) .site
   :root {
     --chat-open-ms: 160;
     --chat-close-ms: 160;
+    --chat-menu-open-ms: 160;
+    --chat-menu-close-ms: 160;
+  }
+
+  /* the tab strip fades instead of sliding */
+  body.chat-expanded .nav-drawer {
+    transform: none;
+    opacity: 0;
+  }
+
+  body.chat-expanded .nav-drawer[data-open="true"] {
+    opacity: 1;
+  }
+
+  body.chat-expanded.chat-nav-ready .nav-drawer {
+    transition:
+      opacity calc(var(--chat-menu-close-ms) * 1ms) linear,
+      visibility 0s linear calc(var(--chat-menu-close-ms) * 1ms);
+  }
+
+  body.chat-expanded.chat-nav-ready .nav-drawer[data-open="true"] {
+    transition:
+      opacity calc(var(--chat-menu-open-ms) * 1ms) linear,
+      visibility 0s;
   }
 
   .chat-panel,
@@ -838,7 +913,8 @@ body.chat-pin-fade.chat-expanded:not(:has(.chat-widget[data-open="true"])) .site
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0.75rem;
+  height: var(--chat-head-h);
+  padding: 0 0.75rem;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   touch-action: none;

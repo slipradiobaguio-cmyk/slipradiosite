@@ -426,6 +426,33 @@
 
   let closeTimer = null;
 
+  // the mobile burger + tab drawer live in nav.js's territory; while the chat
+  // is expanded the drawer is laid over the chat's header strip (see
+  // components.css), and this is the only place chat.js reaches into it —
+  // closing it exactly the way nav.js's own burger click does
+  const navBurger = document.querySelector("[data-nav-burger]");
+  const navDrawer = document.querySelector("[data-nav-drawer]");
+
+  function navDrawerIsOpen() {
+    return Boolean(navDrawer) && navDrawer.getAttribute("data-open") === "true";
+  }
+
+  function closeNavDrawer() {
+    if (!navBurger || !navDrawer) return;
+    navBurger.setAttribute("aria-expanded", "false");
+    navDrawer.setAttribute("data-open", "false");
+  }
+
+  // how long the drawer's own (in-flow, chat closed) close transition takes,
+  // read from CSS so it never has to be kept in sync by hand
+  function navDrawerCloseMs() {
+    if (!navDrawer) return 0;
+    const s = parseFloat(getComputedStyle(navDrawer).transitionDuration);
+    return Number.isFinite(s) ? s * 1000 : 0;
+  }
+
+  let navReadyTimer = null;
+
   // offsetHeight, not getBoundingClientRect — the header/announce bar get
   // pinned with position:fixed the moment chat-expanded is added (see
   // components.css), so their natural height is what matters, not their
@@ -452,8 +479,20 @@
       // (see components.css) — at scroll 0 they're already where they get pinned
       document.body.classList.toggle("chat-pin-fade", window.scrollY > 1);
       document.body.classList.add("chat-expanded");
+      // the tab drawer's transitions are only enabled a beat later, so its
+      // jump from its in-flow pose to the lifted-out one isn't itself animated
+      if (!navReadyTimer && !document.body.classList.contains("chat-nav-ready")) {
+        navReadyTimer = window.setTimeout(() => {
+          document.body.classList.add("chat-nav-ready");
+          navReadyTimer = null;
+        }, 60);
+      }
     } else {
-      document.body.classList.remove("chat-expanded", "chat-pin-fade");
+      if (navReadyTimer) {
+        clearTimeout(navReadyTimer);
+        navReadyTimer = null;
+      }
+      document.body.classList.remove("chat-expanded", "chat-pin-fade", "chat-nav-ready");
     }
   }
 
@@ -488,6 +527,8 @@
     panel.inert = true;
     fab.inert = false;
     fab.setAttribute("aria-expanded", "false");
+    // the tab strip goes with it, sliding out while the tray drops
+    closeNavDrawer();
     // focus that was inside the panel would otherwise be dropped to <body>
     if (panel.contains(document.activeElement)) fab.focus({ preventScroll: true });
     // unpinning the header and unlocking scroll waits for the tray to finish
@@ -503,9 +544,22 @@
   panel.inert = true;
   fab.setAttribute("aria-expanded", "false");
 
+  // Esc peels back one layer at a time: the tab strip first, then the chat
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && widget.dataset.open === "true") closeWidget();
+    if (e.key !== "Escape" || widget.dataset.open !== "true") return;
+    if (navDrawerIsOpen()) closeNavDrawer();
+    else closeWidget();
   });
+
+  // a tab tap while the chat is open leaves the chat: navigation only swaps
+  // <main>, and the chat sits in front of it, so a chat left open would hide
+  // the new page and look like nothing happened. no preventDefault — the
+  // click still reaches pjax.js, which does the navigating
+  if (navDrawer) {
+    navDrawer.addEventListener("click", (e) => {
+      if (widget.dataset.open === "true" && e.target.closest("a")) closeWidget();
+    });
+  }
 
   // drag the header down to dismiss — a long pull or a quick flick closes
   // it, anything less springs back. skipped under reduced motion, where the
@@ -544,7 +598,17 @@
   head.addEventListener("pointerup", endDrag);
   head.addEventListener("pointercancel", endDrag);
 
-  fab.addEventListener("click", openWidget);
+  fab.addEventListener("click", () => {
+    // an open drawer is pushing the page down in the flow; let it finish
+    // closing before the chat pins the header, or the page snaps up under
+    // the rising tray
+    if (navDrawerIsOpen()) {
+      closeNavDrawer();
+      window.setTimeout(openWidget, navDrawerCloseMs() + 20);
+    } else {
+      openWidget();
+    }
+  });
   closeBtn.addEventListener("click", closeWidget);
   expandBtn.addEventListener("click", () => {
     // small panel -> expand; expanded -> close outright (skips back to
