@@ -10,6 +10,8 @@
   const RESERVED_NAMES = new Set(["admin", "slip radio"]);
 
   const fab = widget.querySelector(".chat-fab");
+  const panel = widget.querySelector(".chat-panel");
+  const head = widget.querySelector(".chat-panel__head");
   const badge = widget.querySelector("[data-chat-badge]");
   const closeBtn = widget.querySelector("[data-chat-close]");
   const expandBtn = widget.querySelector("[data-chat-expand]");
@@ -414,7 +416,14 @@
     sendMessage(value.slice(0, MESSAGE_MAX));
   }
 
-  const CLOSE_ANIM_MS = 220;
+  // the tray's timings live in CSS (--chat-open-ms / --chat-close-ms on the
+  // widget) — read the close one back out so the timer below can never
+  // drift from the transition it's waiting on
+  function closeDurationMs() {
+    const ms = parseFloat(getComputedStyle(widget).getPropertyValue("--chat-close-ms"));
+    return Number.isFinite(ms) ? ms : 0;
+  }
+
   let closeTimer = null;
 
   // offsetHeight, not getBoundingClientRect — the header/announce bar get
@@ -450,32 +459,87 @@
       clearTimeout(closeTimer);
       closeTimer = null;
     }
-    widget.removeAttribute("data-closing");
     widget.dataset.open = "true";
+    // the panel stays mounted while closed, so it has to be told it's out
+    // of play (no focus, no taps) — and the launcher, which is only faded
+    // out while open, has to be kept out of the tab order the same way
+    panel.inert = false;
+    fab.inert = true;
+    fab.setAttribute("aria-expanded", "true");
     setUnread(0);
-    scrollToBottom();
-    hideJumpBtn();
     if (MOBILE_QUERY.matches) {
       // mobile skips the small panel entirely and opens straight to
       // full-screen — don't auto-focus there, it pops the keyboard
-      // immediately on open, which nobody asked for
+      // immediately on open, which nobody asked for. expanded first so the
+      // panel has its final size before the feed is scrolled to the bottom
       setExpanded(true);
-    } else {
-      input.focus();
     }
+    scrollToBottom();
+    hideJumpBtn();
+    if (!MOBILE_QUERY.matches) input.focus({ preventScroll: true });
   }
 
   function closeWidget() {
     if (widget.dataset.open !== "true") return;
     widget.dataset.open = "false";
-    widget.dataset.closing = "true";
-    setExpanded(false);
+    panel.inert = true;
+    fab.inert = false;
+    fab.setAttribute("aria-expanded", "false");
+    // focus that was inside the panel would otherwise be dropped to <body>
+    if (panel.contains(document.activeElement)) fab.focus({ preventScroll: true });
+    // unpinning the header and unlocking scroll waits for the tray to finish
+    // dropping into the player — doing it up front makes the page jump
+    // underneath a chat that's still on screen
     if (closeTimer) clearTimeout(closeTimer);
     closeTimer = window.setTimeout(() => {
-      widget.removeAttribute("data-closing");
+      setExpanded(false);
       closeTimer = null;
-    }, CLOSE_ANIM_MS);
+    }, closeDurationMs());
   }
+
+  panel.inert = true;
+  fab.setAttribute("aria-expanded", "false");
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && widget.dataset.open === "true") closeWidget();
+  });
+
+  // drag the header down to dismiss — a long pull or a quick flick closes
+  // it, anything less springs back. skipped under reduced motion, where the
+  // panel doesn't travel so there'd be nothing to drag
+  const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const DRAG_CLOSE_PX = 90;
+  const DRAG_CLOSE_VELOCITY = 0.6;
+  let drag = null;
+
+  head.addEventListener("pointerdown", (e) => {
+    if (widget.dataset.open !== "true" || REDUCED_MOTION.matches || e.target.closest("button")) return;
+    drag = { startY: e.clientY, dy: 0, lastY: e.clientY, lastT: performance.now(), v: 0 };
+    head.setPointerCapture(e.pointerId);
+    widget.classList.add("chat-dragging");
+  });
+
+  head.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const now = performance.now();
+    drag.v = (e.clientY - drag.lastY) / (now - drag.lastT || 1);
+    drag.lastY = e.clientY;
+    drag.lastT = now;
+    drag.dy = Math.max(0, e.clientY - drag.startY);
+    widget.style.setProperty("--chat-drag", `${drag.dy}px`);
+  });
+
+  function endDrag() {
+    if (!drag) return;
+    const { dy, v } = drag;
+    drag = null;
+    widget.classList.remove("chat-dragging");
+    widget.style.setProperty("--chat-drag", "0px");
+    if (dy > DRAG_CLOSE_PX || v > DRAG_CLOSE_VELOCITY) closeWidget();
+  }
+
+  head.addEventListener("pointerup", endDrag);
+  head.addEventListener("pointercancel", endDrag);
 
   fab.addEventListener("click", openWidget);
   closeBtn.addEventListener("click", closeWidget);

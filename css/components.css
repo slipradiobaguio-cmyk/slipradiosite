@@ -547,23 +547,33 @@ body.theme-dark .now-playing {
   color: var(--color-text);
 }
 
-/* live chat widget — floating launcher bottom-right, collapses/expands.
-   sets its own color so it stays legible regardless of theme-dark's
-   inherited white text, same reasoning as the now-playing override above */
+/* live chat widget — floating launcher bottom-right that opens as a tray
+   rising out of the now-playing bar. sets its own color so it stays legible
+   regardless of theme-dark's inherited white text, same reasoning as the
+   now-playing override above.
+
+   the widget itself is just a click-through layer covering everything above
+   the player; the launcher and the panel position themselves inside it. it
+   sits under the player (z-index 19 vs 20) so the panel emerges from behind
+   the bar instead of sliding over it.
+
+   timings live here and only here — chat.js reads --chat-close-ms back out
+   of the computed style, so tuning the feel is a CSS-only change. */
 
 .chat-widget {
+  --chat-open-ms: 920;
+  --chat-close-ms: 560;
+  --chat-stagger-ms: 72;
+  --chat-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --chat-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+
   position: fixed;
-  right: var(--page-gutter);
-  bottom: calc(var(--nowplaying-height) + var(--space-sm));
-  z-index: 21;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  inset: 0 0 var(--nowplaying-height) 0;
+  z-index: 19;
   pointer-events: none;
 }
 
-.chat-fab,
-.chat-panel {
+.chat-fab {
   pointer-events: auto;
 }
 
@@ -601,7 +611,14 @@ body.chat-expanded .nav-burger {
   display: none;
 }
 
+/* stays mounted while the chat is open — it steps aside as the tray rises
+   and comes back as the tray lands in the player. transform is left to the
+   press feedback below; the open/close effect uses opacity + scale so the
+   two never fight over one property or its delay */
 .chat-fab {
+  position: absolute;
+  right: var(--page-gutter);
+  bottom: var(--space-sm);
   width: 44px;
   height: 44px;
   background: var(--color-bg-inverse);
@@ -612,9 +629,10 @@ body.chat-expanded .nav-burger {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  flex-shrink: 0;
-  transition: transform 0.1s ease-out;
+  transition:
+    transform 0.1s ease-out,
+    opacity calc(var(--chat-close-ms) * 0.4ms) linear calc(var(--chat-close-ms) * 0.62ms),
+    scale calc(var(--chat-close-ms) * 0.4ms) var(--chat-ease-out) calc(var(--chat-close-ms) * 0.62ms);
 }
 
 .chat-fab:active {
@@ -649,12 +667,25 @@ body.chat-expanded .nav-burger {
 }
 
 .chat-widget[data-open="true"] .chat-fab {
-  display: none;
+  opacity: 0;
+  scale: 0.8;
+  pointer-events: none;
+  transition:
+    transform 0.1s ease-out,
+    opacity calc(var(--chat-open-ms) * 0.26ms) linear,
+    scale calc(var(--chat-open-ms) * 0.26ms) var(--chat-ease-in);
 }
 
+/* the tray — sits at the bottom of the widget layer (flush with the top of
+   the player bar) and is pushed down behind the bar while closed. it stays
+   mounted so it can slide both ways; visibility (delayed by the close
+   duration) is what actually takes it out of sight and out of the tab
+   order, and chat.js also marks it inert while closed */
 .chat-panel {
-  display: none;
-  position: relative;
+  position: absolute;
+  right: var(--page-gutter);
+  bottom: 0;
+  display: flex;
   flex-direction: column;
   width: 308px;
   height: 400px;
@@ -662,41 +693,120 @@ body.chat-expanded .nav-burger {
   color: var(--color-text);
   border: 1px solid var(--color-border);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-  transform-origin: bottom right;
-  opacity: 0;
-  transform: scale(0.94) translateY(8px);
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(100%);
+  transition:
+    transform calc(var(--chat-close-ms) * 1ms) var(--chat-ease-in),
+    visibility 0s linear calc(var(--chat-close-ms) * 1ms);
 }
 
-/* kept in the render tree (display: flex) for the outward leg of the
-   transition — chat.js clears data-closing once it finishes, at which
-   point it drops back to display: none */
-.chat-widget[data-open="true"] .chat-panel,
-.chat-widget[data-closing="true"] .chat-panel {
-  display: flex;
-}
-
+/* --chat-drag is set by chat.js while the header is being dragged down */
 .chat-widget[data-open="true"] .chat-panel {
-  opacity: 1;
-  transform: scale(1) translateY(0);
+  visibility: visible;
   pointer-events: auto;
+  transform: translateY(var(--chat-drag, 0px));
+  transition:
+    transform calc(var(--chat-open-ms) * 1ms) var(--chat-ease-out),
+    visibility 0s;
 }
 
+/* the panel tracks the finger 1:1 while dragging, no easing */
+.chat-widget.chat-dragging .chat-panel {
+  transition: none !important;
+}
+
+/* messages settle in a beat after the tray lands, newest last — only the
+   last six rows are staggered, the rest just fade with them */
+.chat-feed :is(.chat-msg, .chat-msg--system) {
+  --i: 0;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity calc(var(--chat-close-ms) * 0.3ms) linear;
+}
+
+.chat-feed__current > :nth-last-child(5) { --i: 1; }
+.chat-feed__current > :nth-last-child(4) { --i: 2; }
+.chat-feed__current > :nth-last-child(3) { --i: 3; }
+.chat-feed__current > :nth-last-child(2) { --i: 4; }
+.chat-feed__current > :nth-last-child(1) { --i: 5; }
+
+.chat-widget[data-open="true"] .chat-feed :is(.chat-msg, .chat-msg--system) {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity calc(var(--chat-open-ms) * 0.5ms) var(--chat-ease-out)
+      calc(var(--chat-open-ms) * 0.22ms + var(--i) * var(--chat-stagger-ms) * 1ms),
+    transform calc(var(--chat-open-ms) * 0.7ms) var(--chat-ease-out)
+      calc(var(--chat-open-ms) * 0.22ms + var(--i) * var(--chat-stagger-ms) * 1ms);
+}
+
+/* reduced motion: a short crossfade, nothing travels */
 @media (prefers-reduced-motion: reduce) {
-  .chat-panel {
-    transition: opacity 0.15s ease;
+  .chat-widget {
+    --chat-open-ms: 160;
+    --chat-close-ms: 160;
+  }
+
+  .chat-panel,
+  .chat-widget[data-open="true"] .chat-panel {
     transform: none;
+  }
+
+  .chat-panel {
+    opacity: 0;
+    transition:
+      opacity calc(var(--chat-close-ms) * 1ms) linear,
+      visibility 0s linear calc(var(--chat-close-ms) * 1ms);
+  }
+
+  .chat-widget[data-open="true"] .chat-panel {
+    opacity: 1;
+    transition:
+      opacity calc(var(--chat-open-ms) * 1ms) linear,
+      visibility 0s;
+  }
+
+  .chat-fab,
+  .chat-widget[data-open="true"] .chat-fab {
+    scale: 1;
+    transition:
+      transform 0.1s ease-out,
+      opacity calc(var(--chat-open-ms) * 1ms) linear;
+  }
+
+  .chat-feed :is(.chat-msg, .chat-msg--system),
+  .chat-widget[data-open="true"] .chat-feed :is(.chat-msg, .chat-msg--system) {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 
+/* the header doubles as the drag handle for pulling the tray back down —
+   touch-action keeps a downward drag from being read as a page scroll */
 .chat-panel__head {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.chat-panel__head::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 32px;
+  height: 3px;
+  background: var(--color-border);
+  translate: -50% 0;
 }
 
 .chat-panel__title {
@@ -1032,44 +1142,24 @@ body.chat-expanded .nav-burger {
 }
 
 @media (max-width: 767.98px) {
-  .chat-widget {
-    left: var(--page-gutter);
-    right: var(--page-gutter);
-    align-items: stretch;
-  }
-
-  .chat-panel {
-    width: 100%;
-    height: 66vh;
-    max-height: 480px;
-    transform-origin: bottom center;
-  }
-
-  .chat-fab {
-    align-self: flex-end;
-  }
-
   /* mobile keeps only the expand/collapse box — desktop's small fixed
      panel still relies on this button to close */
   [data-chat-close] {
     display: none;
   }
 
-  /* expanded state — chat.js locks body scroll and sets --chat-expand-top
-     to the measured height of whatever sits above the viewport (site
-     header, plus the dismissible announce bar when it's still showing),
-     so the panel starts exactly below it instead of a hardcoded height */
-  .chat-widget[data-expanded="true"] {
-    top: var(--chat-expand-top, 0px);
+  /* phone: the tray is the full-height window between the site header and
+     the player. chat.js locks body scroll and sets --chat-expand-top to the
+     measured height of whatever sits above the viewport (site header, plus
+     the dismissible announce bar when it's still showing), so the panel
+     starts exactly below it instead of a hardcoded height. the panel keeps
+     this shape while it rises and drops, since it only ever opens full */
+  .chat-panel {
     left: 0;
     right: 0;
-    bottom: var(--nowplaying-height);
-  }
-
-  .chat-widget[data-expanded="true"] .chat-panel {
-    width: 100%;
-    height: 100%;
-    max-height: none;
+    top: var(--chat-expand-top, 0px);
+    width: auto;
+    height: auto;
     border: none;
     border-top: 1px solid var(--color-border);
     box-shadow: none;
