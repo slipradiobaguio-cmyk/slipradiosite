@@ -560,13 +560,17 @@ body.theme-dark .now-playing {
    timings live here and only here — chat.js reads --chat-close-ms back out
    of the computed style, so tuning the feel is a CSS-only change. */
 
-.chat-widget {
+/* on :root, not the widget, because the header and announce bar (which are
+   not inside the widget) take part in the same open/close timing below */
+:root {
   --chat-open-ms: 920;
   --chat-close-ms: 560;
   --chat-stagger-ms: 72;
   --chat-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --chat-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+}
 
+.chat-widget {
   position: fixed;
   inset: 0 0 var(--nowplaying-height) 0;
   z-index: 19;
@@ -583,6 +587,11 @@ body.theme-dark .now-playing {
    not from this alone (iOS Safari ignores plain overflow:hidden) */
 body.chat-expanded {
   overflow: hidden;
+  /* pinning (below) takes the announce bar and header out of the page flow.
+     without holding their space here, everything under them — the hero
+     thumbnails, the schedule — jumps up by their combined height the
+     instant the chat opens, and back down when it finishes closing */
+  padding-top: var(--chat-expand-top, 0px);
 }
 
 /* pinned in place while expanded so the chat panel (itself fixed,
@@ -605,10 +614,49 @@ body.chat-expanded .site-header {
   background: var(--color-bg);
 }
 
-/* the burger opens a nav drawer that doesn't make sense mid-chat —
-   hidden only while expanded, back as soon as chat collapses or closes */
+/* the burger opens a nav drawer that doesn't make sense mid-chat, so it's
+   taken out of play while expanded — but faded and made unreachable, never
+   display: none, which would collapse its space and slide the LIVE
+   indicator next to it sideways. it fades back in as the tray drops */
 body.chat-expanded .nav-burger {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 0.1s ease-out,
+    opacity calc(var(--chat-open-ms) * 0.2ms) linear,
+    visibility 0s linear calc(var(--chat-open-ms) * 0.2ms);
+}
+
+body.chat-expanded:not(:has(.chat-widget[data-open="true"])) .nav-burger {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 0.1s ease-out,
+    opacity calc(var(--chat-close-ms) * 0.4ms) linear calc(var(--chat-close-ms) * 0.6ms),
+    visibility 0s linear calc(var(--chat-close-ms) * 0.6ms);
+}
+
+/* when the page was scrolled, the header and announce bar weren't on
+   screen, so pinning them would make them pop in at the top the instant
+   the chat opens (and pop out again when it finishes closing). chat.js
+   adds chat-pin-fade only in that case — at scroll 0 they're already
+   exactly where they'll be pinned, so they're left alone */
+@keyframes chat-pin-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body.chat-pin-fade.chat-expanded .announce-bar,
+body.chat-pin-fade.chat-expanded .site-header {
+  animation: chat-pin-in calc(var(--chat-open-ms) * 0.3ms) linear;
+}
+
+body.chat-pin-fade.chat-expanded:not(:has(.chat-widget[data-open="true"])) .announce-bar,
+body.chat-pin-fade.chat-expanded:not(:has(.chat-widget[data-open="true"])) .site-header {
+  animation: none;
+  opacity: 0;
+  transition: opacity calc(var(--chat-close-ms) * 1ms) linear;
 }
 
 /* stays mounted while the chat is open — it steps aside as the tray rises
@@ -743,7 +791,7 @@ body.chat-expanded .nav-burger {
 
 /* reduced motion: a short crossfade, nothing travels */
 @media (prefers-reduced-motion: reduce) {
-  .chat-widget {
+  :root {
     --chat-open-ms: 160;
     --chat-close-ms: 160;
   }

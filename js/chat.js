@@ -448,9 +448,12 @@
     expandBtn.setAttribute("aria-label", expanded ? "Close chat" : "Expand chat");
     if (expanded) {
       document.documentElement.style.setProperty("--chat-expand-top", `${measureExpandTop()}px`);
+      // only a scrolled page needs the header/announce bar faded in and out
+      // (see components.css) — at scroll 0 they're already where they get pinned
+      document.body.classList.toggle("chat-pin-fade", window.scrollY > 1);
       document.body.classList.add("chat-expanded");
     } else {
-      document.body.classList.remove("chat-expanded");
+      document.body.classList.remove("chat-expanded", "chat-pin-fade");
     }
   }
 
