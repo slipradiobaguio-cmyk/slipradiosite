@@ -520,8 +520,35 @@ body.theme-dark .show-detail__follow:hover {
   pointer-events: auto;
 }
 
-@media (prefers-reduced-motion: reduce) {
+/* phones — a 300px card instead of full width, and each change dips through
+   black: the outgoing card fades out first, then the next fades up from it */
+@media (max-width: 767px) {
+  .hero-carousel__track {
+    grid-template-columns: min(300px, 100%);
+    justify-content: center;
+  }
+
+  .hero-carousel__slot:has(.show-card.is-active) {
+    background: var(--color-bg-inverse);
+  }
+
   .hero-carousel__slot .show-card {
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  .hero-carousel__slot .show-card.is-active {
+    transition-delay: 0.5s;
+  }
+
+  .hero-carousel-progress {
+    width: min(300px, 100%);
+    margin-inline: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carousel__slot .show-card,
+  .hero-carousel__slot .show-card.is-active {
     transition: none;
   }
 }
