@@ -405,6 +405,20 @@
   resize: vertical;
 }
 
+.admin-form .admin-form__check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+  cursor: pointer;
+}
+
+.admin-form__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
 .admin-form__row {
   display: grid;
   gap: var(--space-sm);

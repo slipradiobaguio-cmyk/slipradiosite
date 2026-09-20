@@ -644,6 +644,7 @@
       if (input) input.value = show[key] || "";
     });
     const matchingPreset = [...timePreset.options].some((opt) => opt.value === show.time);
+    form.elements.namedItem("featured").checked = Boolean(show.featured);
     timePreset.value = show.time ? (matchingPreset ? show.time : "custom") : "";
     syncTimeInputVisibility();
     form.querySelector("[data-field='heroImagePreview']").style.backgroundImage = show.heroImage
@@ -855,6 +856,7 @@
       payload[key] = form.elements.namedItem(key).value.trim();
     });
     payload.heroImage = form.dataset.heroImage || "";
+    payload.featured = form.elements.namedItem("featured").checked;
 
     if (!payload.title || !payload.slug) {
       setStatus("Title and slug are required.", "error");

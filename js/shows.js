@@ -68,6 +68,52 @@
     `;
   }
 
+  const HERO_MAX_SHOWS = 8;
+
+  function todayISO() {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function parseTimeRange(time) {
+    const match = (time || "").match(/(\d{1,2}):(\d{2})\s*[-–—]\s*(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    const [, sh, sm, eh, em] = match;
+    return { startMin: Number(sh) * 60 + Number(sm), endMin: Number(eh) * 60 + Number(em) };
+  }
+
+  // a show is past once its date has gone, or today's slot has ended. Shows
+  // with no date can't be judged, so they count as not past.
+  function isPast(show, today, nowMin) {
+    if (!show.date) return false;
+    if (show.date < today) return true;
+    if (show.date > today) return false;
+    const range = parseTimeRange(show.time);
+    return Boolean(range) && nowMin >= range.endMin;
+  }
+
+  function startKey(show) {
+    const range = parseTimeRange(show.time);
+    return `${show.date || "9999-99-99"} ${String(range ? range.startMin : 0).padStart(4, "0")}`;
+  }
+
+  // home carousel: never past shows, never a show with no image. Featured
+  // shows go first, then everything else by date/time. That puts the live
+  // show and today's remaining shows ahead of later days, with no extra rule.
+  // The on-air show always stays, even if its slot has technically ended.
+  function pickHeroShows(shows, onAirSlug) {
+    const today = todayISO();
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    return shows
+      .filter((show) => show.slug === onAirSlug || (show.heroImage && !isPast(show, today, nowMin)))
+      .sort((a, b) => {
+        if (Boolean(a.featured) !== Boolean(b.featured)) return a.featured ? -1 : 1;
+        return startKey(a) < startKey(b) ? -1 : startKey(a) > startKey(b) ? 1 : 0;
+      })
+      .slice(0, HERO_MAX_SHOWS);
+  }
+
   function placeholderShows(count) {
     return Array.from({ length: count }, () => ({ title: "Show Title", guestName: "Artist" }));
   }
@@ -193,7 +239,7 @@
       if (heroWrap) {
         const track = heroWrap.querySelector("[data-hero-track]");
         const progressTrack = document.querySelector("[data-hero-progress]");
-        initHeroCarousel(track, progressTrack, shows, onAirSlug);
+        initHeroCarousel(track, progressTrack, pickHeroShows(shows, onAirSlug), onAirSlug);
         return;
       }
 

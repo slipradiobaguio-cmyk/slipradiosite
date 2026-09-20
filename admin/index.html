@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="/css/base.css?v=27">
   <link rel="stylesheet" href="/css/layout.css?v=27">
   <link rel="stylesheet" href="/css/components.css?v=27">
-  <link rel="stylesheet" href="/css/admin.css?v=15">
+  <link rel="stylesheet" href="/css/admin.css?v=16">
 </head>
 <body style="padding-bottom: var(--space-lg);">
   <header class="site-header container">
@@ -139,6 +139,13 @@
           <textarea id="field-description" name="description"></textarea>
         </div>
         <div>
+          <label class="admin-form__check">
+            <input type="checkbox" name="featured">
+            Feature on home
+          </label>
+          <p class="admin-form__hint">Pins this show to the front of the home carousel. It drops off on its own once the show has aired.</p>
+        </div>
+        <div>
           <label>Hero image</label>
           <div class="admin-form__thumb-preview" data-field="heroImagePreview"></div>
           <div class="admin-form__thumb-actions">
@@ -245,6 +252,6 @@
   </div>
 
   <script src="/js/no-zoom.js?v=15" defer></script>
-  <script src="/js/admin.js?v=15" defer></script>
+  <script src="/js/admin.js?v=16" defer></script>
 </body>
 </html>
